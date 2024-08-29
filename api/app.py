@@ -9,14 +9,17 @@ from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
     get_jwt_identity
 )
-import module as yolo
+# import module as yolo
 import pickle
 import json
 import datetime
 import urllib
 import requests
+from dotenv import load_dotenv
+import os
 
 app = Flask(__name__)
+load_dotenv()
 
 pusher = pusher.Pusher(
     app_id=os.getenv('PUSHER_APP_ID'),
@@ -35,6 +38,7 @@ def shutdown_session(exception=None):
 @app.route('/api/register', methods=["POST"])
 def register():
     data = request.get_json()
+    print(data)
     try:
         username = data.get("username")
         password = generate_password_hash(data.get("password"))
@@ -43,7 +47,6 @@ def register():
             "status": "error",
             "message": "invalid input"
         })
-
     try:
         new_user = User(username=username, password=password)
         db_session.add(new_user)
@@ -53,7 +56,6 @@ def register():
             "status": "error",
             "message": "Could not add user"
         })
-
     return jsonify({
         "status": "success",
         "message": "User added successfully"
@@ -101,10 +103,10 @@ def request_chat():
     except MultipleResultsFound:
         print('Error! Wait what?')
 
-    try:
-        yolo.get_model(bot.username)
-    except:
-        print('Error! Cannot load model!')
+    # try:
+    #     yolo.get_model(bot.username)
+    # except:
+    #     print('Error! Cannot load model!')
 
     # check if there is a channel that already exists between this two user
     channel = Channel.query.filter( Channel.from_user.in_([from_user, to_user]) ) \
@@ -137,18 +139,13 @@ def request_chat():
 
     return jsonify(data)
 
-@app.route("/api/pusher/auth", methods=['POST'])
+@app.route("/api/pusher/auth",methods=["POST"],endpoint='pusher_authentication')
 @jwt_required
 def pusher_authentication():
-    channel_name = request.form.get('channel_name')
-    socket_id = request.form.get('socket_id')
-
-    auth = pusher.authenticate(
-        channel=channel_name,
-        socket_id=socket_id
-    )
-
-    return jsonify(auth)
+    return jsonify(pusher.authenticate(
+        channel=request.form["channel_name"],
+        socket_id=request.form["socket_id"],
+    ))
 
 def create_message(message, type, to_user, from_user, channel):
     new_message = Message(message=message, type=type, channel_id=channel)
@@ -167,7 +164,7 @@ def create_message(message, type, to_user, from_user, channel):
 
     return message
 
-@app.route("/api/send_message", methods=["POST"])
+@app.route("/api/send_message", methods=["POST"],endpoint='send_message')
 @jwt_required
 def send_message():
     request_data = request.get_json()
@@ -214,15 +211,15 @@ def process_query(bot_id, file, name):
     except MultipleResultsFound:
         print('Error! Wait what?')
 
-    try:
-        model = yolo.get_model(bot.username)
-    except:
-        print('Error! Cannot get model!')
+    # try:
+    #     model = yolo.get_model(bot.username)
+    # except:
+    #     print('Error! Cannot get model!')
 
     inp_dir = './data/input/{}.jpg'.format(name)
     out_dir = './data/output/{}'.format(name)
     file.save(inp_dir)
-    r = yolo.detect(model, inp_dir, out_dir=out_dir)
+    # r = yolo.detect(model, inp_dir, out_dir=out_dir)
 
     r = [x for x in r if x['prob'] > 0.3]
     messages = []
@@ -244,7 +241,7 @@ def process_query(bot_id, file, name):
     
     return inp_url, out_url, messages
 
-@app.route("/api/send_file", methods=["POST"])
+@app.route("/api/send_file", methods=["POST"],endpoint='send_file')
 @jwt_required
 def send_file():
     request_data = request.form
@@ -282,13 +279,13 @@ def send_file():
     except MultipleResultsFound:
         print('Error! Wait what?')
 
-    try:
-        model = yolo.get_model(bot.username)
-    except:
-        print('Error! Cannot get model!')
+    # try:
+    #     model = yolo.get_model(bot.username)
+    # except:
+    #     print('Error! Cannot get model!')
 
     out_dir = './data/output/{}'.format(name)
-    r = yolo.detect(model, inp_dir, out_dir=out_dir)
+    # r = yolo.detect(model, inp_dir, out_dir=out_dir)
     r = [x for x in r if x['prob'] > 0.5]
     messages = []
     messages.append('I have detected %d object(s) in the images.' % len(r) )
@@ -322,7 +319,7 @@ def send_file():
 
     return jsonify(messages)
 
-@app.route('/api/users')
+@app.route('/api/users',endpoint='users')
 @jwt_required
 def users():
     users = User.query.all()
@@ -330,7 +327,7 @@ def users():
         [{"id": user.id, "userName": user.username} for user in users if user.id < 3]
     ), 200
 
-@app.route('/api/get_message/<channel_id>')
+@app.route('/api/get_message/<channel_id>',endpoint='get_message')
 @jwt_required
 def user_messages(channel_id):
     messages = Message.query.filter( Message.channel_id == channel_id ).all()

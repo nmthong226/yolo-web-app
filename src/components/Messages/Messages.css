@@ -1,0 +1,13 @@
+.from-message {
+    background   : #3498db;
+    color        : white;
+    padding      : 8px;
+    margin-bottom: 4px;
+}
+
+.to-message {
+    background   : rgb(201, 209, 209);
+    color        : rgb(41, 53, 52);
+    padding      : 8px;
+    margin-bottom: 4px;
+}
