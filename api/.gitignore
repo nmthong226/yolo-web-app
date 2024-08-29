@@ -70,3 +70,5 @@ data/
 
 # code
 __pycache__
+
+/venv
