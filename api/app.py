@@ -17,8 +17,11 @@ import urllib
 import requests
 from dotenv import load_dotenv
 import os
+from flask_cors import CORS, cross_origin
 
 app = Flask(__name__)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 load_dotenv()
 
 pusher = pusher.Pusher(
@@ -39,23 +42,35 @@ def shutdown_session(exception=None):
 def register():
     data = request.get_json()
     print(data)
-    try:
-        username = data.get("username")
-        password = generate_password_hash(data.get("password"))
-    except:
+    # Check if the data is valid
+    if not data or not data.get("username") or not data.get("password"):
         return jsonify({
             "status": "error",
-            "message": "invalid input"
-        })
+            "message": "Username and password are required"
+        }), 400
+    username = data.get("username").strip()
+    if username == "":
+        return jsonify({
+            "status": "error",
+            "message": "Username cannot be blank"
+        }), 400
+    existing_user = db_session.query(User).filter_by(username=username).first()
+    if existing_user:
+        return jsonify({
+            "status": "error",
+            "message": "Username already taken"
+        }), 409
     try:
+        password = generate_password_hash(data.get("password"))
         new_user = User(username=username, password=password)
         db_session.add(new_user)
         db_session.commit()
-    except:
+    except Exception as e:
+        print(f"Error adding user: {e}")
         return jsonify({
             "status": "error",
             "message": "Could not add user"
-        })
+        }), 500
     return jsonify({
         "status": "success",
         "message": "User added successfully"
