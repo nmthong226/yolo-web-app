@@ -21,15 +21,13 @@ const App = () => {
   const [currentChatChannel, setCurrentChatChannel] = useState(null);
   const [pusher, setPusher] = useState(null);
   const [token, setToken] = useState("");
-
   const handleAuthenticated = async (loginStatus, userData) => {
     setLoggedUserId(userData.id);
     setLoggedUserUsername(userData.username);
     setAuthenticated(loginStatus);
     setToken(userData.token);
-
-    const newPusher = new Pusher(process.env.REACT_APP_PUSHER_KEY, {
-      cluster: process.env.REACT_APP_PUSHER_CLUSTER,
+    const newPusher = new Pusher(import.meta.env.VITE_PUSHER_KEY, {
+      cluster: import.meta.env.VITE_PUSHER_CLUSTER,
       authEndpoint: "/api/pusher/auth",
       auth: {
         headers: {
@@ -38,26 +36,21 @@ const App = () => {
       },
     });
     setPusher(newPusher);
-
     const response = await axios.get("/api/users", {
       headers: { Authorization: "Bearer " + userData.token },
     });
     setUsers(response.data.filter((user) => user.userName !== userData.username));
-
     const notifications = newPusher.subscribe(
       `private-notification_user_${userData.id}`
     );
-
     notifications.bind("new_chat", (data) => {
       const isSubscribed = newPusher.channel(data.channel_name);
       if (!isSubscribed) {
         const oneOnOneChat = newPusher.subscribe(data.channel_name);
-
         setMessages((prevMessages) => ({
           ...prevMessages,
           [data.channel_name]: [],
         }));
-
         oneOnOneChat.bind("new_message", (data) => {
           if (data.channel !== currentChatChannel && data.from_user !== loggedUserId) {
             const index = users.findIndex((user) => user.id === data.from_user);
@@ -67,7 +60,6 @@ const App = () => {
               )
             );
           }
-
           setMessages((prevMessages) => ({
             ...prevMessages,
             [data.channel]: [
