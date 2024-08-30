@@ -13,8 +13,6 @@ const Register = () => {
   const [processing, setProcessing] = useState(false);
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
-  console.log(import.meta.env.VITE_API_BASE);
-
   const register = async () => {
     setProcessing(true);
     try {
@@ -22,9 +20,10 @@ const Register = () => {
         username,
         password,
       });
+      console.log(response.data.status);
       if (response.data.status === "success") {
         setProcessing(false);
-        onAuthenticated(true, response.data.data);
+        navigate("/login");
       } else {
         setMessage("Registration failed. Please try again.");
         setProcessing(false);
@@ -40,7 +39,7 @@ const Register = () => {
         <img src={logo} alt="logo" className="w-[60px] mx-auto mb-2" />
         <span className="text-2xl sm:text-4xl font-bold mx-auto mb-4">Register to Canity</span>
         {processing && <div className="text-center"> Please wait... </div>}
-        {message && <div className="text-center"> {message} </div>}
+        {message && <div className="text-center bg-red-500 p-2 text-white mb-2 rounded-md"> {message} </div>}
         <input
           type="text"
           className="input-form mb-2 p-2 w-full border border-gray-500 rounded-md"
