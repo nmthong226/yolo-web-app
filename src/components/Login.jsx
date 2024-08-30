@@ -14,11 +14,10 @@ const Login = ({ onAuthenticated }) => {
     const login = async () => {
         setProcessing(true);
         try {
-            const response = await axios.post("/api/login", {
+            const response = await axios.post(`${process.env.VITE_API_BASE}/api/login`, {
                 username,
                 password,
             });
-
             if (response.data.status === "success") {
                 setProcessing(false);
                 onAuthenticated(true, response.data.data);
