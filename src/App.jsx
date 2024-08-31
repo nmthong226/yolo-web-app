@@ -28,7 +28,7 @@ const App = () => {
     setToken(userData.token);
     const newPusher = new Pusher(import.meta.env.VITE_PUSHER_KEY, {
       cluster: import.meta.env.VITE_PUSHER_CLUSTER,
-      authEndpoint: "/api/pusher/auth",
+      authEndpoint: `${import.meta.env.VITE_API_BASE}/api/pusher/auth`,
       auth: {
         headers: {
           Authorization: "Bearer " + userData.token,
@@ -36,7 +36,7 @@ const App = () => {
       },
     });
     setPusher(newPusher);
-    const response = await axios.get("/api/users", {
+    const response = await axios.get(`${import.meta.env.VITE_API_BASE}/api/users`, {
       headers: { Authorization: "Bearer " + userData.token },
     });
     setUsers(response.data.filter((user) => user.userName !== userData.username));
@@ -106,6 +106,15 @@ const App = () => {
             authenticated ? (
               <HomePage
                 loggedUserUsername={loggedUserUsername}
+                loggedUserId={loggedUserId}
+                users={users}
+                setUsers={setUsers}
+                loadingModel={loadingModel}
+                setLoadingModel={setLoadingModel}
+                messages={messages}
+                setMessages={setMessages}
+                pusher={pusher}
+                token={token}
               />
             ) : (
               <Navigate to="/login" />
