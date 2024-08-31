@@ -1,12 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { IoIosArrowDown } from "react-icons/io";
 import { FaRegCircleCheck } from "react-icons/fa6";
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 import { GrSun } from "react-icons/gr";
 import { FiMoon } from "react-icons/fi";
 
-const NavBar = () => {
-  const [model, selectModel] = useState("Basic");
+const NavBar = ({ users, onChat }) => {
+  const [activeUser, setActiveUser] = useState("1");
+
+  useEffect(() => {
+    setActiveUser(users[0]?.id || "1");
+  }, [])
+  const handleChat = (id) => {
+    setActiveUser(id);
+    onChat(id);
+  };
   return (
     <nav className="flex h-[8%] items-center justify-between border-2 border-l-0 border-gray-300 px-4">
       <Menu as="div" className="relative inline-block text-left">
@@ -21,27 +29,26 @@ const NavBar = () => {
           className="absolute left-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 transition focus:outline-none data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
         >
           <div className="py-1">
-            <form action="#" method="POST">
-              <MenuItem>
-                <button
-                  type="submit"
-                  className="flex justify-between items-center w-full px-4 py-2 text-left text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-gray-900"
-                >
-                  Canity Basic
-                  <FaRegCircleCheck className={`${model === "Basic" ? "" : "hidden"}`} />
-                </button>
-              </MenuItem>
-            </form>
-            <form action="#" method="POST">
-              <MenuItem>
-                <button
-                  type="submit"
-                  className="block w-full px-4 py-2 text-left text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-gray-900"
-                >
-                  <span className="flex">Canity<p className="text-transparent bg-clip-text bg-gradient-to-r from-[#9372ff] via-[#484fa2] to-[#9372ff] ml-[2%]">Advanced</p></span>
-                </button>
-              </MenuItem>
-            </form>
+            <MenuItem>
+              <button
+                type="submit"
+                className="flex justify-between items-center w-full px-4 py-2 text-left text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-gray-900"
+                onClick={() => handleChat("1")}
+              >
+                Canity Basic
+                <FaRegCircleCheck className={`${activeUser === "1" ? "" : "hidden"}`} />
+              </button>
+            </MenuItem>
+            <MenuItem>
+              <button
+                type="submit"
+                className="flex justify-between items-center w-full px-4 py-2 text-left text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-gray-900"
+                onClick={() => handleChat("2")}
+              >
+                <span className="flex">Canity<p className="text-transparent bg-clip-text bg-gradient-to-r from-[#9372ff] via-[#484fa2] to-[#9372ff] ml-[2%]">Advanced</p></span>
+                <FaRegCircleCheck className={`${activeUser === "2" ? "" : "hidden"}`} />
+              </button>
+            </MenuItem>
           </div>
         </MenuItems>
       </Menu>
