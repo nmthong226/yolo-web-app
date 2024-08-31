@@ -9,16 +9,14 @@ import { CiSearch } from "react-icons/ci";
 import { getColor, createImageFromInitials } from '../utils/userAvatar.js';
 import { GoQuestion } from "react-icons/go";
 import { IoSettingsOutline } from "react-icons/io5";
+import { BsReverseLayoutTextSidebarReverse } from "react-icons/bs";
+import { RiLogoutBoxRLine } from "react-icons/ri";
+import axios from 'axios';
 
-const HomePage = ({ loggedUserUsername }) => {
+const HomePage = ({ users, setUsers, loggedUserUsername, loggedUserId, token, pusher, messages, setMessages }) => {
     const [loadingModel, setLoadingModel] = useState(false);
-    const [messages, setMessages] = useState({});
-    const [users, setUsers] = useState([]);
     const [activeChatId, setActiveChatId] = useState(null);
     const [currentChatChannel, setCurrentChatChannel] = useState(null);
-    const [pusher, setPusher] = useState(null);
-    const [token, setToken] = useState("");
-    console.log(loggedUserUsername);
     const classNames = (...classes) => {
         return classes.filter(Boolean).join(' ');
     }
@@ -27,7 +25,7 @@ const HomePage = ({ loggedUserUsername }) => {
     };
     const getMessage = (channelName) => {
         axios
-            .get(`/api/get_message/${channelName}`, {
+            .get(`${import.meta.env.VITE_API_BASE}/api/get_message/${channelName}`, {
                 headers: { Authorization: "Bearer " + token },
             })
             .then((response) => {
@@ -49,7 +47,7 @@ const HomePage = ({ loggedUserUsername }) => {
         setLoadingModel(true);
         axios
             .post(
-                "/api/request_chat",
+                `${import.meta.env.VITE_API_BASE}/api/request_chat`,
                 {
                     from_user: loggedUserId,
                     to_user: id,
@@ -99,7 +97,7 @@ const HomePage = ({ loggedUserUsername }) => {
 
     const sendMessage = (message) => {
         axios.post(
-            "/api/send_message",
+            `${import.meta.env.VITE_API_BASE}/api/send_message`,
             {
                 type: "Text",
                 from_user: loggedUserId,
@@ -118,7 +116,6 @@ const HomePage = ({ loggedUserUsername }) => {
         formData.append("to_user", activeChatId);
         formData.append("file", file);
         formData.append("channel", currentChatChannel);
-
         axios.post("/api/send_file", formData, {
             headers: {
                 "Content-Type": "multipart/form-data",
@@ -128,10 +125,15 @@ const HomePage = ({ loggedUserUsername }) => {
     };
     return (
         <div className="flex flex-row h-screen">
-            <div className="flex flex-col justify-between w-1/5 h-full">
-                <div className='flex flex-row h-[8%] w-full border-2 border-gray-300 items-center'>
-                    <img src={logo} alt="logo" className="h-10 ml-4" />
-                    <div className="text-zinc-800 font-bold ml-2">Canity Image</div>
+            <div className="flex flex-col justify-between max-lg:hidden lg:w-1/5 h-full">
+                <div className='flex flex-row h-[8%] w-full border-2 border-gray-300 items-center justify-between'>
+                    <div className='flex flex-row items-center ml-[4%]'>
+                        <img src={logo} alt="logo" className="h-10" />
+                        <div className="text-zinc-800 font-bold ml-2">Canity Image</div>
+                    </div>
+                    <button className='mr-[4%]'>
+                        <BsReverseLayoutTextSidebarReverse className='size-5' />
+                    </button>
                 </div>
                 <div className='flex-grow flex flex-col border-2 border-t-0 border-gray-300'>
                     <div className='w-full h-full'>
@@ -158,7 +160,7 @@ const HomePage = ({ loggedUserUsername }) => {
                         </button>
                     </div>
                 </div>
-                <div className='flex flex-row h-[8%] border-2 border-gray-300 items-center'>
+                <div className='flex flex-row h-[8%] border-2 border-gray-300 items-center justify-between'>
                     <div className='flex items-center ml-[4%]'>
                         <button className='relative flex rounded-full bg-gray-800 text-sm focus:ring-2 focus:outline-none focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800'>
                             <img
@@ -170,11 +172,56 @@ const HomePage = ({ loggedUserUsername }) => {
                         </button>
                         <span className='ml-2'>{loggedUserUsername}</span>
                     </div>
+                    <button className='mr-[4%]'>
+                        <RiLogoutBoxRLine className='size-5'/>
+                    </button>
+                </div>
+            </div>
+            {/* <div className="flex flex-col justify-between max-lg:hidden lg:w-[5%] h-full">
+                <div className='flex flex-row h-[8%] w-full border-2 border-gray-300 items-center justify-center'>
+                    <button className='mr-[4%]'>
+                        <BsReverseLayoutTextSidebarReverse className='size-5' />
+                    </button>
+                </div>
+                <div className='flex-grow flex flex-col border-2 border-t-0 border-gray-300 justify-center items-center'>
+                    <div className='w-full h-full'>
+                        <button className='flex flex-row px-4 w-[94%] h-[6%] ml-[3%] bg-[#484FA2] hover:bg-[#484FA2]/90 items-center mt-2 rounded-lg text-white justify-center'>
+                            <FaPlus className='text-white' />
+                        </button>
+                        <div className='flex flex-row px-4 w-[94%] h-[6%] ml-[3%] bg-gray-200 items-center mt-2 rounded-lg text-white justify-center'>
+                            <CiSearch className='text-gray-600' />
+                            <input
+                                className='hidden bg-gray-200 focus:outline-none focus:ring-0 text-gray-800 h-full w-full'
+                                placeholder='Search'>
+                            </input>
+                        </div>
+                    </div>
+                    <div className='mb-[10%] text-gray-500 space-y-[4%]'>
+                        <button className='flex items-center'>
+                            <IoSettingsOutline className='size-5' />
+                        </button>
+                        <button className='flex items-center'>
+                            <GoQuestion className='size-5' />
+                        </button>
+                    </div>
+                </div>
+                <div className='flex flex-row h-[8%] border-2 border-gray-300 items-center justify-center'>
+                    <div className='flex items-center ml-[4%]'>
+                        <button className='relative flex rounded-full bg-gray-800 text-sm focus:ring-2 focus:outline-none focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800'>
+                            <img
+                                id='preview'
+                                src={createImageFromInitials(120, loggedUserUsername, getColor())}
+                                alt='profile-pic'
+                                className='h-10 w-10 rounded-full'
+                            />
+                        </button>
+                    </div>
                 </div>
                 {/* <Users users={users} onChat={handleChat} /> */}
-            </div>
-            <div className="flex flex-col w-4/5 h-full">
-                <NavBar />
+            {/* </div> */}
+            <div className="flex flex-col w-full lg:w-4/5 h-full">
+                <NavBar users={users} onChat={handleChat}/>
+                {/* <Users users={users} onChat={handleChat} /> */}
                 <div className="bg-gray-100 h-[74%]">
                     {loadingModel ? (
                         <div className="select-chat text-center">Loading model...</div>
