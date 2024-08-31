@@ -3,7 +3,7 @@ import './Messages.css';
 
 const Messages = ({ messages, activeChat }) => {
   return (
-    <div className="messages">
+    <div className="px-[20%] mt-[2%]">
       {messages.map((message, id) => (
         <div key={id}>
           {message.type === "Image" ? (
@@ -18,8 +18,8 @@ const Messages = ({ messages, activeChat }) => {
           ) : message.type === "Text" ? (
             <div
               className={`chat-message w-1/2 ${message.from_user === activeChat
-                  ? "to-message"
-                  : "from-message ml-auto"
+                  ? "bg-white text-black p-2"
+                  : "bg-white p-2 ml-auto rounded-lg px-4 text-gray-700 mb-[1%]"
                 }`}
             >
               {message.message}
