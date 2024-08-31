@@ -103,7 +103,7 @@ def login():
     }), 200
 
 @app.route('/api/request_chat', methods=["POST"])
-@jwt_required
+@jwt_required()
 def request_chat():
     request_data = request.get_json()
     from_user = request_data.get('from_user', '')
@@ -155,7 +155,7 @@ def request_chat():
     return jsonify(data)
 
 @app.route("/api/pusher/auth",methods=["POST"],endpoint='pusher_authentication')
-@jwt_required
+@jwt_required()
 def pusher_authentication():
     return jsonify(pusher.authenticate(
         channel=request.form["channel_name"],
@@ -168,7 +168,6 @@ def create_message(message, type, to_user, from_user, channel):
     new_message.to_user = to_user
     db_session.add(new_message)
     db_session.commit()
-
     message = {
         "type": type,
         "from_user": from_user,
@@ -176,18 +175,17 @@ def create_message(message, type, to_user, from_user, channel):
         "message": message,
         "channel": channel
     }
-
     return message
 
 @app.route("/api/send_message", methods=["POST"],endpoint='send_message')
-@jwt_required
+@jwt_required()
 def send_message():
     request_data = request.get_json()
+    print(request_data)
     from_user = request_data.get('from_user', '')
     to_user = request_data.get('to_user', '')
     message = request_data.get('message', '')
     channel = request_data.get('channel')
-
     message = create_message(message=message, 
                             type='Text', 
                             to_user=to_user, 
@@ -196,7 +194,6 @@ def send_message():
 
     # Trigger an event to the other user
     pusher.trigger(channel, 'new_message', message)
-
     return jsonify(message)
 
 def upload_file(folder, img_name):
@@ -257,7 +254,7 @@ def process_query(bot_id, file, name):
     return inp_url, out_url, messages
 
 @app.route("/api/send_file", methods=["POST"],endpoint='send_file')
-@jwt_required
+@jwt_required()
 def send_file():
     request_data = request.form
     from_user = request_data.get('from_user', '')
@@ -335,15 +332,15 @@ def send_file():
     return jsonify(messages)
 
 @app.route('/api/users',endpoint='users')
-@jwt_required
+@jwt_required()
 def users():
     users = User.query.all()
     return jsonify(
-        [{"id": user.id, "userName": user.username} for user in users if user.id < 3]
+        [{"id": user.id, "userName": user.username} for user in users]
     ), 200
 
 @app.route('/api/get_message/<channel_id>',endpoint='get_message')
-@jwt_required
+@jwt_required()
 def user_messages(channel_id):
     messages = Message.query.filter( Message.channel_id == channel_id ).all()
 
