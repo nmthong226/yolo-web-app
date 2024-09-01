@@ -6,10 +6,9 @@ import { GrSun } from "react-icons/gr";
 import { FiMoon } from "react-icons/fi";
 
 const NavBar = ({ users, onChat }) => {
-  const [activeUser, setActiveUser] = useState("1");
-
+  const [activeUser, setActiveUser] = useState(1);
   useEffect(() => {
-    setActiveUser(users[0]?.id || "1");
+    setActiveUser(users[0]?.id || 1);
   }, [])
   const handleChat = (id) => {
     setActiveUser(id);
@@ -33,20 +32,20 @@ const NavBar = ({ users, onChat }) => {
               <button
                 type="submit"
                 className="flex justify-between items-center w-full px-4 py-2 text-left text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-gray-900"
-                onClick={() => handleChat("1")}
+                onClick={() => handleChat(1)}
               >
                 Canity Basic
-                <FaRegCircleCheck className={`${activeUser === "1" ? "" : "hidden"}`} />
+                <FaRegCircleCheck className={`${activeUser === 1 ? "" : "hidden"}`} />
               </button>
             </MenuItem>
             <MenuItem>
               <button
                 type="submit"
                 className="flex justify-between items-center w-full px-4 py-2 text-left text-sm text-gray-700 data-[focus]:bg-gray-100 data-[focus]:text-gray-900"
-                onClick={() => handleChat("2")}
+                onClick={() => handleChat(2)}
               >
                 <span className="flex">Canity<p className="text-transparent bg-clip-text bg-gradient-to-r from-[#9372ff] via-[#484fa2] to-[#9372ff] ml-[2%]">Advanced</p></span>
-                <FaRegCircleCheck className={`${activeUser === "2" ? "" : "hidden"}`} />
+                <FaRegCircleCheck className={`${activeUser === 2 ? "" : "hidden"}`} />
               </button>
             </MenuItem>
           </div>
