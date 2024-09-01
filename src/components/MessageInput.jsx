@@ -6,27 +6,20 @@ import { MdCancel } from "react-icons/md";
 
 const MessageInput = ({ onSendMessage, onSendFile }) => {
   const [messageInput, setMessageInput] = useState("");
-  const [file, setFile] = useState(null);
-
+  const [uploadedFile, setUploadedFile] = useState(null);
   const sendMessage = () => {
-    if (messageInput !== "") {
-      onSendMessage(messageInput);
-      setMessageInput("");
+    if (messageInput !== "" || uploadedFile) {
+      if (uploadedFile) {
+        onSendFile(uploadedFile);
+        setUploadedFile(null);
+        document.getElementById("fileUpload").value = null;
+      }
+      if (messageInput !== "") {
+        onSendMessage(messageInput);
+        setMessageInput("");
+      }
     }
   };
-
-  const handleFileUpload = (event) => {
-    setFile(event.target.files[0]);
-  };
-
-  const sendFile = () => {
-    onSendFile(file);
-    setFile(null);
-    document.getElementById("file").value = null;
-  };
-
-  const [uploadedFile, setUploadedFile] = useState(null);
-
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -34,12 +27,9 @@ const MessageInput = ({ onSendMessage, onSendFile }) => {
       console.log(file);
     }
   };
-
   const triggerFileInput = () => {
     document.getElementById('fileUpload').click();
   };
-
-
   return (
     <div className="flex w-full justify-center absolute bottom-0">
       <div className="flex flex-col w-full h-full justify-center items-center mb-[2%]">
