@@ -17,9 +17,6 @@ const HomePage = ({ users, setUsers, loggedUserUsername, loggedUserId, token, pu
     const [loadingModel, setLoadingModel] = useState(false);
     const [activeChatId, setActiveChatId] = useState(null);
     const [currentChatChannel, setCurrentChatChannel] = useState(null);
-    const classNames = (...classes) => {
-        return classes.filter(Boolean).join(' ');
-    }
     const logout = () => {
         console.log("logout");
     };
@@ -55,7 +52,9 @@ const HomePage = ({ users, setUsers, loggedUserUsername, loggedUserId, token, pu
                 { headers: { Authorization: "Bearer " + token } }
             )
             .then((response) => {
-                setLoadingModel(false);
+                setTimeout(() => {
+                    setLoadingModel(false);
+                }, 2000);
                 const channelName = response.data.channel_name;
                 setCurrentChatChannel(channelName);
                 getMessage(channelName);
@@ -173,7 +172,7 @@ const HomePage = ({ users, setUsers, loggedUserUsername, loggedUserId, token, pu
                         <span className='ml-2'>{loggedUserUsername}</span>
                     </div>
                     <button className='mr-[4%]'>
-                        <RiLogoutBoxRLine className='size-5'/>
+                        <RiLogoutBoxRLine className='size-5' />
                     </button>
                 </div>
             </div>
@@ -219,12 +218,30 @@ const HomePage = ({ users, setUsers, loggedUserUsername, loggedUserId, token, pu
                 </div>
                 {/* <Users users={users} onChat={handleChat} /> */}
             {/* </div> */}
-            <div className="flex flex-col w-full lg:w-4/5 h-full">
-                <NavBar users={users} onChat={handleChat}/>
+            <div className="flex flex-col w-full lg:w-4/5 h-full relative bg-gray-100">
+                <NavBar users={users} onChat={handleChat} />
                 {/* <Users users={users} onChat={handleChat} /> */}
-                <div className="bg-gray-100 h-[74%]">
+                <div className="bg-gray-100 h-[74%] overflow-y-auto">
                     {loadingModel ? (
-                        <div className="select-chat text-center">Loading model...</div>
+                        <div aria-label="Loading..." role="status" className="flex items-center justify-center space-x-2 w-full h-full">
+                            <svg className="h-4 w-4 animate-spin stroke-gray-500" viewBox="0 0 256 256">
+                                <line x1="128" y1="32" x2="128" y2="64" strokeLinecap="round" strokeLinejoin="round" strokeWidth="24"></line>
+                                <line x1="195.9" y1="60.1" x2="173.3" y2="82.7" strokeLinecap="round" strokeLinejoin="round"
+                                    strokeWidth="24"></line>
+                                <line x1="224" y1="128" x2="192" y2="128" strokeLinecap="round" strokeLinejoin="round" strokeWidth="24">
+                                </line>
+                                <line x1="195.9" y1="195.9" x2="173.3" y2="173.3" strokeLinecap="round" strokeLinejoin="round"
+                                    strokeWidth="24"></line>
+                                <line x1="128" y1="224" x2="128" y2="192" strokeLinecap="round" strokeLinejoin="round" strokeWidth="24">
+                                </line>
+                                <line x1="60.1" y1="195.9" x2="82.7" y2="173.3" strokeLinecap="round" strokeLinejoin="round"
+                                    strokeWidth="24"></line>
+                                <line x1="32" y1="128" x2="64" y2="128" strokeLinecap="round" strokeLinejoin="round" strokeWidth="24"></line>
+                                <line x1="60.1" y1="60.1" x2="82.7" y2="82.7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="24">
+                                </line>
+                            </svg>
+                            <span className="text-base font-medium text-gray-500">Loading...</span>
+                        </div>
                     ) : !currentChatChannel ? (
                         <div className="flex flex-col items-center mt-[2%] w-full h-full">
                             <span className='text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#9372ff] via-[#484fa2] to-[#4f14ff]'>Welcome {loggedUserUsername}</span>
