@@ -199,11 +199,9 @@ def send_message():
 def upload_file(folder, img_name):
     my_file = open(img_name, "rb")
     my_bytes = my_file.read()
-    my_url = "https://firebasestorage.googleapis.com/v0/b/narupedia-d9cf9.appspot.com/o/" + folder + "%2F" + os.path.basename(img_name)
+    my_url = "https://firebasestorage.googleapis.com/v0/b/yolo-web-app.appspot.com/o/" + folder + "%2F" + os.path.basename(img_name)
     my_headers = {"Content-Type": "image/jpeg"}
-
     my_request = urllib.request.Request(my_url, data=my_bytes, headers=my_headers, method="POST")
-
     try:
         loader = urllib.request.urlopen(my_request)
     except urllib.error.URLError as e:
@@ -248,8 +246,8 @@ def process_query(bot_id, file, name):
     inp_token = upload_file('input', inp_dir)
     out_token = upload_file('output', out_dir+'.jpg')
 
-    inp_url = 'https://firebasestorage.googleapis.com/v0/b/narupedia-d9cf9.appspot.com/o/input%2F' + name + '.jpg?alt=media&token=' + inp_token
-    out_url = 'https://firebasestorage.googleapis.com/v0/b/narupedia-d9cf9.appspot.com/o/output%2F' + name + '.jpg?alt=media&token=' + out_token
+    inp_url = 'https://firebasestorage.googleapis.com/v0/b/yolo-web-app.appspot.com/o/input%2F' + name + '.jpg?alt=media&token=' + inp_token
+    out_url = 'https://firebasestorage.googleapis.com/v0/b/yolo-web-app.appspot.com/o/output%2F' + name + '.jpg?alt=media&token=' + out_token
     
     return inp_url, out_url, messages
 
@@ -260,42 +258,35 @@ def send_file():
     from_user = request_data.get('from_user', '')
     to_user = request_data.get('to_user', '')
     channel = request_data.get('channel')
-
     file = request.files['file']
-
     bot_id = to_user
     name = channel + datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-
     inp_dir = './data/input/{}.jpg'.format(name)
     file.save(inp_dir)
     inp_token = upload_file('input', inp_dir)
-    inp_url = 'https://firebasestorage.googleapis.com/v0/b/narupedia-d9cf9.appspot.com/o/input%2F' + name + '.jpg?alt=media&token=' + inp_token
+    inp_url = 'https://firebasestorage.googleapis.com/v0/b/yolo-web-app.appspot.com/o/input%2F' + name + '.jpg?alt=media&token=' + inp_token
     inp_img = create_message(message=inp_url, 
                             type='Image', 
                             to_user=to_user, 
                             from_user=from_user, 
                             channel=channel)
     pusher.trigger(channel, 'new_message', inp_img)
-
     message = create_message(message="I'm onto it, please wait for a bit.", 
                             type='Text', 
                             to_user=from_user, 
                             from_user=to_user, 
                             channel=channel)
     pusher.trigger(channel, 'new_message', message)
-
     try:
         bot = User.query.filter(User.id == bot_id).one()
     except NoResultFound:
         print('Error! No bot (yet).')
     except MultipleResultsFound:
         print('Error! Wait what?')
-
     # try:
     #     model = yolo.get_model(bot.username)
     # except:
     #     print('Error! Cannot get model!')
-
     out_dir = './data/output/{}'.format(name)
     # r = yolo.detect(model, inp_dir, out_dir=out_dir)
     r = [x for x in r if x['prob'] > 0.5]
@@ -309,10 +300,8 @@ def send_file():
             messages.append('[%d] I am not so sure but it may be a [%s]' % (idx, det['class']))
         # elif prob > 0.3:
             # messages.append('[%d] I really do not know what this is. My best guess is that it is a [%s].' % (idx, det['class']))
-    
     out_token = upload_file('output', out_dir+'.jpg')
-    out_url = 'https://firebasestorage.googleapis.com/v0/b/narupedia-d9cf9.appspot.com/o/output%2F' + name + '.jpg?alt=media&token=' + out_token
-
+    out_url = 'https://firebasestorage.googleapis.com/v0/b/yolo-web-app.appspot.com/o/output%2F' + name + '.jpg?alt=media&token=' + out_token
     # inp_url, out_url, messages = process_query(bot_id, file, name)
     out_img = create_message(message=out_url, 
                             type='Image', 
