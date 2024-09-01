@@ -16,7 +16,7 @@ const NavBar = ({ users, onChat }) => {
     onChat(id);
   };
   return (
-    <nav className="flex h-[8%] items-center justify-between border-2 border-l-0 border-gray-300 px-4">
+    <nav className="flex h-[8%] items-center justify-between border-2 border-l-0 border-gray-300 px-4 bg-white">
       <Menu as="div" className="relative inline-block text-left">
         <div>
           <MenuButton className="flex text-zinc-800 font-bold text-[calc(14px+(26-20)*((100vw-300px)/(1600-300)))] items-center hover:bg-gray-200 hover:cursor-pointer p-2 rounded-md">
