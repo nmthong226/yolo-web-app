@@ -115,7 +115,7 @@ const HomePage = ({ users, setUsers, loggedUserUsername, loggedUserId, token, pu
         formData.append("to_user", activeChatId);
         formData.append("file", file);
         formData.append("channel", currentChatChannel);
-        axios.post("/api/send_file", formData, {
+        axios.post(`${import.meta.env.VITE_API_BASE}/api/send_file`, formData, {
             headers: {
                 "Content-Type": "multipart/form-data",
                 Authorization: "Bearer " + token,
@@ -251,6 +251,7 @@ const HomePage = ({ users, setUsers, loggedUserUsername, loggedUserId, token, pu
                         <Messages
                             activeChat={activeChatId}
                             messages={messages[currentChatChannel] || []}
+                            loggedUserName={loggedUserUsername}
                         />
                     )}
                 </div>
