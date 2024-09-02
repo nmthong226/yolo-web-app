@@ -5,13 +5,12 @@ import logo from '/public/logo.png';
 import { getColor, createImageFromInitials } from '../../utils/userAvatar.js';
 
 const Messages = ({ messages, activeChat, loggedUserName }) => {
-  const getUserLogo = (fromUser) => {
-    return fromUser === activeChat ? logo : userBLogo;
-  };
+  // Ensure activeChat and from_user are strings for consistent comparison
+  const normalizedActiveChat = String(activeChat);
 
   const shouldDisplayLogo = (messages, index) => {
     if (index === 0) return true;
-    return messages[index].from_user !== messages[index - 1].from_user;
+    return String(messages[index].from_user) !== String(messages[index - 1].from_user);
   };
 
   return (
@@ -20,8 +19,8 @@ const Messages = ({ messages, activeChat, loggedUserName }) => {
         <div key={id} className="mb-2">
           {shouldDisplayLogo(messages, id) && (
             <div className="flex items-center mb-1">
-              {message.from_user === activeChat ? (
-                <div className="flex mr-auto mb-[1%] items-end">
+              {String(message.from_user) === normalizedActiveChat ? (
+                <div className="flex mr-auto mb-[1%] items-center">
                   <img
                     src={logo}
                     alt="User Logo"
@@ -32,10 +31,10 @@ const Messages = ({ messages, activeChat, loggedUserName }) => {
               ) : (
                 <div className="flex ml-auto mb-[1%] items-center">
                   <img
-                    id='preview'
+                    id="preview"
                     src={createImageFromInitials(120, loggedUserName, getColor())}
-                    alt='profile-pic'
-                    className='h-10 w-10 rounded-full'
+                    alt="profile-pic"
+                    className="h-10 w-10 rounded-full"
                   />
                   <span className="ml-2 font-bold">{loggedUserName}</span>
                 </div>
@@ -46,21 +45,24 @@ const Messages = ({ messages, activeChat, loggedUserName }) => {
             <ModalImage
               small={message.message}
               medium={message.message}
-              className={`chat-message w-1/2 ${message.from_user === activeChat
-                ? "to-message mr-auto rounded-lg mb-[1%]"
-                : "from-message ml-auto rounded-lg mb-[1%]"
-                }`}
+              className={`chat-message w-1/2 ${
+                String(message.from_user) === normalizedActiveChat
+                  ? "to-message mr-auto rounded-lg mb-[1%]"
+                  : "from-message ml-auto rounded-lg mb-[1%]"
+              }`}
               hideDownload={true}
               hideZoom={true}
-              alt={`${message.from_user !== activeChat ? "Input Image" : "Output Image"
-                }`}
+              alt={`${
+                String(message.from_user) !== normalizedActiveChat ? "Input Image" : "Output Image"
+              }`}
             />
           ) : message.type === "Text" ? (
             <div
-              className={`chat-message w-1/2 ${message.from_user === activeChat
-                ? "bg-white p-2 mr-auto rounded-lg px-4 text-gray-700 mb-[1%]"
-                : "bg-white p-2 ml-auto rounded-lg px-4 text-gray-700 mb-[1%]"
-                }`}
+              className={`chat-message w-1/2 ${
+                String(message.from_user) === normalizedActiveChat
+                  ? "bg-white p-2 mr-auto rounded-lg px-4 text-gray-700 mb-[1%]"
+                  : "bg-white p-2 ml-auto rounded-lg px-4 text-gray-700 mb-[1%]"
+              }`}
             >
               {message.message}
             </div>
