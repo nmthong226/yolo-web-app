@@ -18,6 +18,8 @@ import requests
 from dotenv import load_dotenv
 import os
 from flask_cors import CORS, cross_origin
+import cv2
+from ultralytics import YOLO
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -191,7 +193,6 @@ def send_message():
                             to_user=to_user, 
                             from_user=from_user, 
                             channel=channel)
-
     # Trigger an event to the other user
     pusher.trigger(channel, 'new_message', message)
     return jsonify(message)
@@ -213,7 +214,7 @@ def upload_file(folder, img_name):
         result = json.loads(loader.read().decode())
         return result["downloadTokens"]
 
-def process_query(bot_id, file, name):
+def process_query(bot_id, file, name, inp_dir):
     try:
         bot = User.query.filter(User.id == bot_id).one()
     except NoResultFound:
@@ -221,37 +222,74 @@ def process_query(bot_id, file, name):
     except MultipleResultsFound:
         print('Error! Wait what?')
 
-    # try:
-    #     model = yolo.get_model(bot.username)
-    # except:
-    #     print('Error! Cannot get model!')
+    # Load the YOLOv9c model (pretrained)
+    try:
+        model = YOLO("yolov9c.pt")  # You can adjust the model path as necessary
+    except Exception as e:
+        print('Error! Cannot load model:', str(e))
+        return None, None, ["Error! Cannot load model."]
 
-    inp_dir = './data/input/{}.jpg'.format(name)
+    # Save the uploaded file locally
     out_dir = './data/output/{}'.format(name)
-    file.save(inp_dir)
-    # r = yolo.detect(model, inp_dir, out_dir=out_dir)
 
-    r = [x for x in r if x['prob'] > 0.3]
+    # Ensure the image is saved correctly
+    if not os.path.exists(inp_dir):
+        print('Error! File not found:', inp_dir)
+        return None, None, ["Error! File not found."]
+    else:
+        print('File saved:', inp_dir)
+    
+    # Load the image using OpenCV to verify it is not corrupted
+    img = cv2.imread(inp_dir)
+    if img is None:
+        print('Error! Could not read the image file. It may be corrupted.')
+        return None, None, ["Error! Could not read the image file."]
+    else:
+        print('Image loaded:', inp_dir)
+
+    # Run inference with the YOLOv9c model
+    try:
+        results = model(img)
+        # Get the image with bounding boxes plotted
+        result_image = results[0].plot()
+        # Save the result image to the specified directory with the exact name
+        out_path = './data/output/{}.jpg'.format(name)
+        cv2.imwrite(out_path, result_image)
+    except Exception as e:
+        print('Error during inference:', str(e))
+        return None, None, ["Error during inference."]
+    
+    # Filter results based on the confidence threshold
+    detections = []
+    for result in results[0].boxes.data.cpu().numpy():  # Extracting detections from results
+        xmin, ymin, xmax, ymax, confidence, cls_id = result[:6]
+        if confidence > 0.3:
+            detections.append({
+                'class': results[0].names[int(cls_id)],  # Get class name from YOLOv9 model
+                'prob': confidence
+            })
+    # Prepare messages based on detection results
     messages = []
-    messages.append('I have detected %d object(s) in the images.' % len(r) )
-    for idx, det in enumerate(r):
+    messages.append(f'I have detected {len(detections)} object(s) in the image.')
+    for idx, det in enumerate(detections):
         prob = det['prob']
         if prob > 0.8:
-            messages.append('[%d] I detected a [%s].' % (idx, det['class']))
+            messages.append(f'[{idx + 1}] I detected a [{det["class"]}].')
         elif prob > 0.5:
-            messages.append('[%d] I am not so sure but it may be a [%s]' % (idx, det['class']))
+            messages.append(f'[{idx + 1}] I am not so sure but it may be a [{det["class"]}].')
         elif prob > 0.3:
-            messages.append('[%d] I really do not know what this is. My best guess is that it is a [%s].' % (idx, det['class']))
-
+            messages.append(f'[{idx + 1}] I really do not know what this is. My best guess is that it is a [{det["class"]}].')
+    
+    # Upload the input and output images to Firebase Storage
     inp_token = upload_file('input', inp_dir)
     out_token = upload_file('output', out_dir+'.jpg')
 
-    inp_url = 'https://firebasestorage.googleapis.com/v0/b/yolo-web-app.appspot.com/o/input%2F' + name + '.jpg?alt=media&token=' + inp_token
-    out_url = 'https://firebasestorage.googleapis.com/v0/b/yolo-web-app.appspot.com/o/output%2F' + name + '.jpg?alt=media&token=' + out_token
+    inp_url = f'https://firebasestorage.googleapis.com/v0/b/yolo-web-app.appspot.com/o/input%2F{name}.jpg?alt=media&token={inp_token}'
+    out_url = f'https://firebasestorage.googleapis.com/v0/b/yolo-web-app.appspot.com/o/output%2F{name}.jpg?alt=media&token={out_token}'
     
     return inp_url, out_url, messages
 
-@app.route("/api/send_file", methods=["POST"],endpoint='send_file')
+@app.route("/api/send_file", methods=["POST"], endpoint='send_file')
 @jwt_required()
 def send_file():
     request_data = request.form
@@ -263,62 +301,36 @@ def send_file():
     name = channel + datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     inp_dir = './data/input/{}.jpg'.format(name)
     file.save(inp_dir)
+
+    # Upload the input image and notify the user
     inp_token = upload_file('input', inp_dir)
-    inp_url = 'https://firebasestorage.googleapis.com/v0/b/yolo-web-app.appspot.com/o/input%2F' + name + '.jpg?alt=media&token=' + inp_token
-    inp_img = create_message(message=inp_url, 
-                            type='Image', 
-                            to_user=to_user, 
-                            from_user=from_user, 
-                            channel=channel)
+    inp_url = f'https://firebasestorage.googleapis.com/v0/b/yolo-web-app.appspot.com/o/input%2F{name}.jpg?alt=media&token={inp_token}'
+    inp_img = create_message(message=inp_url, type='Image', to_user=to_user, from_user=from_user, channel=channel)
     pusher.trigger(channel, 'new_message', inp_img)
-    message = create_message(message="I'm onto it, please wait for a bit.", 
-                            type='Text', 
-                            to_user=from_user, 
-                            from_user=to_user, 
-                            channel=channel)
+
+    message = create_message(message="Please wait, I'm detecting object(s)...", type='Text', to_user=from_user, from_user=to_user, channel=channel)
     pusher.trigger(channel, 'new_message', message)
-    try:
-        bot = User.query.filter(User.id == bot_id).one()
-    except NoResultFound:
-        print('Error! No bot (yet).')
-    except MultipleResultsFound:
-        print('Error! Wait what?')
-    # try:
-    #     model = yolo.get_model(bot.username)
-    # except:
-    #     print('Error! Cannot get model!')
-    out_dir = './data/output/{}'.format(name)
-    # r = yolo.detect(model, inp_dir, out_dir=out_dir)
-    r = [x for x in r if x['prob'] > 0.5]
-    messages = []
-    messages.append('I have detected %d object(s) in the images.' % len(r) )
-    for idx, det in enumerate(r):
-        prob = det['prob']
-        if prob > 0.8:
-            messages.append('[%d] I detected a [%s].' % (idx, det['class']))
-        elif prob > 0.5:
-            messages.append('[%d] I am not so sure but it may be a [%s]' % (idx, det['class']))
-        # elif prob > 0.3:
-            # messages.append('[%d] I really do not know what this is. My best guess is that it is a [%s].' % (idx, det['class']))
-    out_token = upload_file('output', out_dir+'.jpg')
-    out_url = 'https://firebasestorage.googleapis.com/v0/b/yolo-web-app.appspot.com/o/output%2F' + name + '.jpg?alt=media&token=' + out_token
-    # inp_url, out_url, messages = process_query(bot_id, file, name)
-    out_img = create_message(message=out_url, 
-                            type='Image', 
-                            to_user=from_user, 
-                            from_user=to_user, 
-                            channel=channel)
+
+    # Process the image and perform object detection
+    inp_url, out_url, messages = process_query(bot_id, file, name, inp_dir)
+
+    # If process_query fails, return an error message
+    if not inp_url or not out_url:
+        error_message = create_message(message="There was an error processing the image.", type='Text', to_user=from_user, from_user=to_user, channel=channel)
+        pusher.trigger(channel, 'new_message', error_message)
+        return jsonify({"error": "Processing failed"}), 500
+
+    # Notify the user with the output image
+    out_img = create_message(message=out_url, type='Image', to_user=from_user, from_user=to_user, channel=channel)
     pusher.trigger(channel, 'new_message', out_img)
 
+    # Send the detection results as messages
     for m in messages:
-        message = create_message(message=m, 
-                            type='Text', 
-                            to_user=from_user, 
-                            from_user=to_user, 
-                            channel=channel)
+        message = create_message(message=m, type='Text', to_user=from_user, from_user=to_user, channel=channel)
         pusher.trigger(channel, 'new_message', message)
 
     return jsonify(messages)
+
 
 @app.route('/api/users',endpoint='users')
 @jwt_required()
