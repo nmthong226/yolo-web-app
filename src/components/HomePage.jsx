@@ -1,6 +1,6 @@
 import React, { useState, Fragment } from 'react';
 import NavBar from './NavBar';
-import Users from './User';
+import Bots from './Bots.jsx';
 import Messages from './Messages/Messages';
 import MessageInput from './MessageInput';
 import logo from '/public/logo.png';
@@ -148,22 +148,7 @@ const HomePage = ({ users, setUsers, loggedUserUsername, loggedUserId, token, pu
                             </input>
                         </div>
                         <div className='text-sm text-gray-500 ml-[3%] mt-[4%]'>Categories</div>
-                        <button className='flex flex-row px-2 w-[94%] h-[6%] ml-[3%] bg-none border-2 hover:bg-gray-100 items-center mt-2 rounded-lg text-white'>
-                            <img width="28" height="28" src="https://img.icons8.com/fluency/48/settings.png" alt="doge" className='mr-2'/>                            
-                            <span className='text-gray-600 text-sm'>Demo App</span>
-                        </button>
-                        <button className='flex flex-row px-2 w-[94%] h-[6%] ml-[3%] bg-none border-2 hover:bg-gray-100 items-center mt-2 rounded-lg text-white'>
-                            <img width="28" height="28" src="https://img.icons8.com/fluency/48/year-of-dog.png" alt="doge" className='mr-2'/>                            
-                            <span className='text-gray-600 text-sm'>Dog Detect v1.0</span>
-                        </button>
-                        <button className='flex flex-row px-2 w-[94%] h-[6%] ml-[3%] bg-none border-2 hover:bg-gray-100 items-center mt-2 rounded-lg text-white'>
-                            <img width="28" height="28" src="https://img.icons8.com/fluency/48/hamburger.png" alt="doge" className='mr-2'/>                            
-                            <span className='text-gray-600 text-sm'>Food Detect v1.0</span>
-                        </button>
-                        <button className='flex flex-row px-2 w-[94%] h-[6%] ml-[3%] bg-none border-2 hover:bg-gray-100 items-center mt-2 rounded-lg text-white'>
-                            <img width="28" height="28" src="https://img.icons8.com/color/48/potted-plant--v1.png" alt="doge" className='mr-2'/>                            
-                            <span className='text-gray-600 text-sm'>Plant Detect v1.0</span>
-                        </button>
+                        <Bots users={users} onChat={handleChat} />
                     </div>
                     <div className='ml-[8%] mb-[10%] text-gray-500 space-y-[4%]'>
                         <button className='flex items-center'>
@@ -237,8 +222,7 @@ const HomePage = ({ users, setUsers, loggedUserUsername, loggedUserId, token, pu
             {/* </div> */}
             <div className="flex flex-col w-full lg:w-4/5 h-full relative bg-gray-100">
                 <NavBar users={users} onChat={handleChat} />
-                {/* <Users users={users} onChat={handleChat} /> */}
-                <div className="bg-gray-100 h-[74%] overflow-y-auto">
+                <div className="bg-gray-100 h-[74%]">
                     {loadingModel ? (
                         <div aria-label="Loading..." role="status" className="flex items-center justify-center space-x-2 w-full h-full">
                             <svg className="h-4 w-4 animate-spin stroke-gray-500" viewBox="0 0 256 256">
