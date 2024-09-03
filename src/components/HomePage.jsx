@@ -12,13 +12,19 @@ import { IoSettingsOutline } from "react-icons/io5";
 import { BsReverseLayoutTextSidebarReverse } from "react-icons/bs";
 import { RiLogoutBoxRLine } from "react-icons/ri";
 import axios from 'axios';
+import { Navigate, useNavigate } from 'react-router-dom';
 
-const HomePage = ({ users, setUsers, loggedUserUsername, loggedUserId, token, pusher, messages, setMessages }) => {
+const HomePage = ({ setAuthenticated, setToken, users, setUsers, loggedUserUsername, loggedUserId, token, pusher, messages, setMessages }) => {
     const [loadingModel, setLoadingModel] = useState(false);
     const [activeChatId, setActiveChatId] = useState(null);
     const [currentChatChannel, setCurrentChatChannel] = useState(null);
-    const logout = () => {
-        console.log("logout");
+    const [AImode, setAIMode] = useState(0);
+    const navigate = useNavigate();
+    const handleLogout = () => {
+        setAuthenticated(false);
+        setToken(null);
+        localStorage.removeItem("token");
+        navigate("/login");
     };
     const getMessage = (channelName) => {
         axios
@@ -103,6 +109,7 @@ const HomePage = ({ users, setUsers, loggedUserUsername, loggedUserId, token, pu
                 to_user: activeChatId,
                 message: message,
                 channel: currentChatChannel,
+                ai_mode: AImode,
             },
             { headers: { Authorization: "Bearer " + token } }
         );
@@ -115,6 +122,7 @@ const HomePage = ({ users, setUsers, loggedUserUsername, loggedUserId, token, pu
         formData.append("to_user", activeChatId);
         formData.append("file", file);
         formData.append("channel", currentChatChannel);
+        formData.append("ai_mode", AImode);
         axios.post(`${import.meta.env.VITE_API_BASE}/api/send_file`, formData, {
             headers: {
                 "Content-Type": "multipart/form-data",
@@ -173,7 +181,10 @@ const HomePage = ({ users, setUsers, loggedUserUsername, loggedUserId, token, pu
                         </button>
                         <span className='ml-2'>{loggedUserUsername}</span>
                     </div>
-                    <button className='mr-[4%]'>
+                    <button 
+                        className='mr-[4%]'
+                        onClick={() => handleLogout()}
+                    >
                         <RiLogoutBoxRLine className='size-5' />
                     </button>
                 </div>
@@ -221,7 +232,7 @@ const HomePage = ({ users, setUsers, loggedUserUsername, loggedUserId, token, pu
                 {/* <Users users={users} onChat={handleChat} /> */}
             {/* </div> */}
             <div className="flex flex-col w-full lg:w-4/5 h-full relative bg-gray-100">
-                <NavBar users={users} onChat={handleChat} />
+                <NavBar AImode={AImode} setAIMode={setAIMode} />
                 <div className="bg-gray-100 h-[74%]">
                     {loadingModel ? (
                         <div aria-label="Loading..." role="status" className="flex items-center justify-center space-x-2 w-full h-full">
