@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import './Messages.css';
 import ModalImage from "react-modal-image";
 import logo from '/public/logo.png';
@@ -8,13 +8,29 @@ const Messages = ({ messages, activeChat, loggedUserName }) => {
   // Ensure activeChat and from_user are strings for consistent comparison
   const normalizedActiveChat = String(activeChat);
 
+  // Reference to the container that holds the messages
+  const messagesEndRef = useRef(null);
+  const containerRef = useRef(null);
+
+  // Function to scroll to the bottom immediately
+  const scrollToBottom = () => {
+    if (containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+  };
+
+  // Scroll to the bottom whenever messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
   const shouldDisplayLogo = (messages, index) => {
     if (index === 0) return true;
     return String(messages[index].from_user) !== String(messages[index - 1].from_user);
   };
 
   return (
-    <div className="px-[20%] mt-[2%]">
+    <div ref={containerRef} className="px-[20%] mt-[2%] overflow-auto h-full">
       {messages.map((message, id) => (
         <div key={id} className="mb-2">
           {shouldDisplayLogo(messages, id) && (
@@ -69,6 +85,8 @@ const Messages = ({ messages, activeChat, loggedUserName }) => {
           ) : null}
         </div>
       ))}
+      {/* Adding a div at the end of the messages container to scroll to */}
+      <div ref={messagesEndRef} />
     </div>
   );
 };
