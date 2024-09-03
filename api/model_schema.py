@@ -29,6 +29,7 @@ class Message(Base):
     from_user = Column(Integer, ForeignKey('users.id'))
     to_user = Column(Integer, ForeignKey('users.id'))
     channel_id = Column(Integer, ForeignKey('channels.id'))
-
+    ai_mode = Column(Integer)
+    
     def __repr__(self):
         return '<Message from [%r] to [%r]: [%s]>' % (self.from_user, self.to_user, self.message)
