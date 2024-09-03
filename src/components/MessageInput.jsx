@@ -82,10 +82,11 @@ const MessageInput = ({ onSendMessage, onSendFile }) => {
                     <FaRegFileImage className="size-5 text-gray-700" />
                   </button>
                   <button
-                    className="p-3 hover:bg-gray-200 rounded-full"
+                    className={`p-3 ${messageInput !== "" || uploadedFile !== null ? "hover:bg-zinc-800 bg-zinc-900 cursor-pointer" : "cursor-default"} rounded-full`}
                     onClick={sendMessage}
+                    disabled={messageInput !== "" || uploadedFile !== null} 
                   >
-                    <LuSendHorizonal className="size-5 text-gray-700" />
+                    <LuSendHorizonal className={`size-5 ${messageInput !== "" || uploadedFile !== null ? "text-white" : "text-gray-700"}`} />
                   </button>
                 </div>
               </div>
