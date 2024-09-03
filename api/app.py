@@ -18,11 +18,17 @@ from dotenv import load_dotenv
 import os
 from flask_cors import CORS, cross_origin
 import cv2
+from datetime import timedelta
+import google.generativeai as genai
+
+load_dotenv()
+
+genai.configure(api_key=os.environ["API_KEY"])
 
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
-load_dotenv()
+
 
 pusher = pusher.Pusher(
     app_id=os.getenv('PUSHER_APP_ID'),
@@ -89,8 +95,8 @@ def login():
             "message": "Failed getting user"
         }), 401
 
-    # Generate a token
-    access_token = create_access_token(identity=username)
+    # Generate a token with custom expiration time (e.g., 6 hours)
+    access_token = create_access_token(identity=username, expires_delta=timedelta(hours=6))
 
     return jsonify({
         "status": "success",
@@ -98,6 +104,27 @@ def login():
         "data": {
             "id": user.id,
             "token": access_token,
+            "username": user.username
+        }
+    }), 200
+
+@app.route('/api/users/me', methods=['GET'])
+@jwt_required()
+def get_user_data():
+    # Get the username from the token
+    current_user = get_jwt_identity()
+    # Query the user from the database
+    user = User.query.filter_by(username=current_user).first()
+    if not user:
+        return jsonify({
+            "status": "failed",
+            "message": "User not found"
+        }), 404
+    # Return the user data
+    return jsonify({
+        "status": "success",
+        "data": {
+            "id": user.id,
             "username": user.username
         }
     }), 200
@@ -162,8 +189,8 @@ def pusher_authentication():
         socket_id=request.form["socket_id"],
     ))
 
-def create_message(message, type, to_user, from_user, channel):
-    new_message = Message(message=message, type=type, channel_id=channel)
+def create_message(message, type, to_user, from_user, channel, ai_mode):
+    new_message = Message(message=message, type=type, channel_id=channel, ai_mode=ai_mode)
     new_message.from_user = from_user
     new_message.to_user = to_user
     db_session.add(new_message)
@@ -173,7 +200,8 @@ def create_message(message, type, to_user, from_user, channel):
         "from_user": from_user,
         "to_user": to_user,
         "message": message,
-        "channel": channel
+        "channel": channel,
+        "ai_mode": ai_mode
     }
     return message
 
@@ -186,11 +214,13 @@ def send_message():
     to_user = request_data.get('to_user', '')
     message = request_data.get('message', '')
     channel = request_data.get('channel')
+    ai_mode = request_data.get('ai_mode')
     message = create_message(message=message, 
                             type='Text', 
                             to_user=to_user, 
                             from_user=from_user, 
-                            channel=channel)
+                            channel=channel,
+                            ai_mode=ai_mode)
     # Trigger an event to the other user
     pusher.trigger(channel, 'new_message', message)
     return jsonify(message)
@@ -212,7 +242,7 @@ def upload_file(folder, img_name):
         result = json.loads(loader.read().decode())
         return result["downloadTokens"]
 
-def process_query(bot_id, file, name, inp_dir):
+def process_query(bot_id, file, name, inp_dir, ai_activation):
     # try:
     #     bot = User.query.filter(User.id == bot_id).one()
     # except NoResultFound:
@@ -283,6 +313,7 @@ def process_query(bot_id, file, name, inp_dir):
                 'class': results[0].names[int(cls_id)],  # Get class name from YOLOv9 model
                 'prob': confidence
             })
+
     # Prepare messages based on detection results
     messages = []
     messages.append(f'I have detected {len(detections)} object(s) in the image.')
@@ -298,10 +329,22 @@ def process_query(bot_id, file, name, inp_dir):
     # Upload the input and output images to Firebase Storage
     inp_token = upload_file('input', inp_dir)
     out_token = upload_file('output', out_dir+'.jpg')
-
     inp_url = f'https://firebasestorage.googleapis.com/v0/b/yolo-web-app.appspot.com/o/input%2F{name}.jpg?alt=media&token={inp_token}'
     out_url = f'https://firebasestorage.googleapis.com/v0/b/yolo-web-app.appspot.com/o/output%2F{name}.jpg?alt=media&token={out_token}'
     
+    # If user activates ai mode, they will get the description about the detected objects
+    if ai_activation == '1':
+        # Generate more info about the detected objects in the image
+        model = genai.GenerativeModel("gemini-1.5-flash")
+        if detections:
+            # Create a prompt based on the detected objects
+            detected_classes = ', '.join([det['class'] for det in detections])
+            prompt = f"What is {detected_classes} dog?."
+            response = model.generate_content(prompt)
+            messages.append(response.text)
+        else:
+            messages.append("No objects were detected, so I couldn't generate additional information.")
+
     return inp_url, out_url, messages
 
 @app.route("/api/send_file", methods=["POST"], endpoint='send_file')
@@ -311,6 +354,7 @@ def send_file():
     from_user = request_data.get('from_user', '')
     to_user = request_data.get('to_user', '')
     channel = request_data.get('channel')
+    ai_mode = request_data.get('ai_mode')
     file = request.files['file']
     bot_id = to_user
     name = channel + datetime.datetime.now().strftime("%Y%m%d%H%M%S")
@@ -320,28 +364,28 @@ def send_file():
     # Upload the input image and notify the user
     inp_token = upload_file('input', inp_dir)
     inp_url = f'https://firebasestorage.googleapis.com/v0/b/yolo-web-app.appspot.com/o/input%2F{name}.jpg?alt=media&token={inp_token}'
-    inp_img = create_message(message=inp_url, type='Image', to_user=to_user, from_user=from_user, channel=channel)
+    inp_img = create_message(message=inp_url, type='Image', to_user=to_user, from_user=from_user, channel=channel, ai_mode=ai_mode)
     pusher.trigger(channel, 'new_message', inp_img)
 
-    message = create_message(message="Please wait, I'm detecting object(s)...", type='Text', to_user=from_user, from_user=to_user, channel=channel)
+    message = create_message(message="Please wait, I'm detecting object(s)...", type='Text', to_user=from_user, from_user=to_user, channel=channel, ai_mode=ai_mode)
     pusher.trigger(channel, 'new_message', message)
 
     # Process the image and perform object detection
-    inp_url, out_url, messages = process_query(bot_id, file, name, inp_dir)
+    inp_url, out_url, messages = process_query(bot_id, file, name, inp_dir, ai_mode)
 
     # If process_query fails, return an error message
     if not inp_url or not out_url:
-        error_message = create_message(message="There was an error processing the image.", type='Text', to_user=from_user, from_user=to_user, channel=channel)
+        error_message = create_message(message="There was an error processing the image.", type='Text', to_user=from_user, from_user=to_user, channel=channel, ai_mode=ai_mode)
         pusher.trigger(channel, 'new_message', error_message)
         return jsonify({"error": "Processing failed"}), 500
 
     # Notify the user with the output image
-    out_img = create_message(message=out_url, type='Image', to_user=from_user, from_user=to_user, channel=channel)
+    out_img = create_message(message=out_url, type='Image', to_user=from_user, from_user=to_user, channel=channel, ai_mode=ai_mode)
     pusher.trigger(channel, 'new_message', out_img)
 
     # Send the detection results as messages
     for m in messages:
-        message = create_message(message=m, type='Text', to_user=from_user, from_user=to_user, channel=channel)
+        message = create_message(message=m, type='Text', to_user=from_user, from_user=to_user, channel=channel, ai_mode=ai_mode)
         pusher.trigger(channel, 'new_message', message)
 
     return jsonify(messages)
