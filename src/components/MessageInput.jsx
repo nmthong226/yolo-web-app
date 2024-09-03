@@ -84,7 +84,6 @@ const MessageInput = ({ onSendMessage, onSendFile }) => {
                   <button
                     className={`p-3 ${messageInput !== "" || uploadedFile !== null ? "hover:bg-zinc-800 bg-zinc-900 cursor-pointer" : "cursor-default"} rounded-full`}
                     onClick={sendMessage}
-                    disabled={messageInput !== "" || uploadedFile !== null} 
                   >
                     <LuSendHorizonal className={`size-5 ${messageInput !== "" || uploadedFile !== null ? "text-white" : "text-gray-700"}`} />
                   </button>
