@@ -22,6 +22,7 @@ const App = () => {
     setLoggedUserUsername(userData.username);
     setAuthenticated(loginStatus);
     setToken(userData.token);
+    localStorage.setItem("token", userData.token);
     const newPusher = new Pusher(import.meta.env.VITE_PUSHER_KEY, {
       cluster: import.meta.env.VITE_PUSHER_CLUSTER,
       authEndpoint: `${import.meta.env.VITE_API_BASE}/api/pusher/auth`,
@@ -74,6 +75,23 @@ const App = () => {
     });
   };
 
+  useEffect(() => {
+    const savedToken = localStorage.getItem("token");
+    if (savedToken) {
+      setToken(savedToken);
+      setAuthenticated(true);
+      axios.get(`${import.meta.env.VITE_API_BASE}/api/users/me`, {
+        headers: { Authorization: "Bearer " + savedToken },
+      }).then(response => {
+        console.log(response);
+        setLoggedUserId(response.data.data.id);
+        setLoggedUserUsername(response.data.data.username);
+      }).catch(error => {
+        console.error("Error fetching user data:", error);
+      });
+    }
+  }, []);
+
   return (
     <Router>
       <Routes>
@@ -103,6 +121,8 @@ const App = () => {
               <HomePage
                 loggedUserUsername={loggedUserUsername}
                 loggedUserId={loggedUserId}
+                setAuthenticated={setAuthenticated}
+                setToken={setToken}
                 users={users}
                 setUsers={setUsers}
                 loadingModel={loadingModel}
