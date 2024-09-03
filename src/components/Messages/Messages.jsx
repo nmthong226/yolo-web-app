@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import ReactMarkdown from 'react-markdown';
 import './Messages.css';
 import ModalImage from "react-modal-image";
 import logo from '/public/logo.png';
@@ -80,12 +81,11 @@ const Messages = ({ messages, activeChat, loggedUserName }) => {
                   : "bg-white p-2 ml-auto rounded-lg px-4 text-gray-700 mb-[1%]"
               }`}
             >
-              {message.message}
+              <ReactMarkdown>{message.message}</ReactMarkdown>
             </div>
           ) : null}
         </div>
       ))}
-      {/* Adding a div at the end of the messages container to scroll to */}
       <div ref={messagesEndRef} />
     </div>
   );
