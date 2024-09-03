@@ -3,14 +3,13 @@ from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 import os
 import pusher
 from database import db_session
-from models import User, Channel, Message
+from model_schema import User, Channel, Message
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
     get_jwt_identity
 )
-# import module as yolo
-import pickle
+from yolo import models as yolo
 import json
 import datetime
 import urllib
@@ -19,7 +18,6 @@ from dotenv import load_dotenv
 import os
 from flask_cors import CORS, cross_origin
 import cv2
-from ultralytics import YOLO
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -215,19 +213,36 @@ def upload_file(folder, img_name):
         return result["downloadTokens"]
 
 def process_query(bot_id, file, name, inp_dir):
-    try:
-        bot = User.query.filter(User.id == bot_id).one()
-    except NoResultFound:
-        print('Error! No bot (yet).')
-    except MultipleResultsFound:
-        print('Error! Wait what?')
+    # try:
+    #     bot = User.query.filter(User.id == bot_id).one()
+    # except NoResultFound:
+    #     print('Error! No bot found.')
+    #     return None, None, ["Error! No bot found."]
+    # except MultipleResultsFound:
+    #     print('Error! Multiple bots found.')
+    #     return None, None, ["Error! Multiple bots found."]
 
-    # Load the YOLOv9c model (pretrained)
+    # # Map bot_id to the appropriate model key
+    # bot_model_map = {
+    #     'basic': '1',
+    #     '2': 'dog_detect',
+    #     '3': 'food_detect',
+    #     '4': 'plant_detect'
+    # }
+
+    # # Retrieve the model key based on bot_id
+    # model_key = bot_model_map.get(bot, None)
+    # print("1", model_key)
+    # if not model_key:
+    #     print(f'Error! Invalid bot_id: {bot_id}')
+    #     return None, None, [f"Error! Invalid bot_id: {bot_id}"]
+
     try:
-        model = YOLO("yolov9c.pt")  # You can adjust the model path as necessary
+        model = yolo.get_model(bot_id)  # Use the model key to load the correct model
     except Exception as e:
-        print('Error! Cannot load model:', str(e))
-        return None, None, ["Error! Cannot load model."]
+        print(f'Error! Cannot load model: {str(e)}')
+        return None, None, [f"Error! Cannot load model: {str(e)}"]
+
 
     # Save the uploaded file locally
     out_dir = './data/output/{}'.format(name)
