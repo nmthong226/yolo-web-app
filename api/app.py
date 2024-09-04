@@ -129,7 +129,7 @@ def get_user_data():
         }
     }), 200
 
-@app.route('/api/request_chat', methods=["POST"])
+@app.route('/api/request-chat', methods=["POST"])
 @jwt_required()
 def request_chat():
     request_data = request.get_json()
@@ -205,7 +205,7 @@ def create_message(message, type, to_user, from_user, channel, ai_mode):
     }
     return message
 
-@app.route("/api/send_message", methods=["POST"],endpoint='send_message')
+@app.route("/api/send-message", methods=["POST"],endpoint='send_message')
 @jwt_required()
 def send_message():
     request_data = request.get_json()
@@ -242,7 +242,7 @@ def upload_file(folder, img_name):
         result = json.loads(loader.read().decode())
         return result["downloadTokens"]
 
-def process_query(bot_id, file, name, inp_dir, ai_activation):
+def handle_request(bot_id, file, name, inp_dir, ai_activation):
     # try:
     #     bot = User.query.filter(User.id == bot_id).one()
     # except NoResultFound:
@@ -347,7 +347,7 @@ def process_query(bot_id, file, name, inp_dir, ai_activation):
 
     return inp_url, out_url, messages
 
-@app.route("/api/send_file", methods=["POST"], endpoint='send_file')
+@app.route("/api/send-file", methods=["POST"], endpoint='send_file')
 @jwt_required()
 def send_file():
     request_data = request.form
@@ -371,9 +371,9 @@ def send_file():
     pusher.trigger(channel, 'new_message', message)
 
     # Process the image and perform object detection
-    inp_url, out_url, messages = process_query(bot_id, file, name, inp_dir, ai_mode)
+    inp_url, out_url, messages = handle_request(bot_id, file, name, inp_dir, ai_mode)
 
-    # If process_query fails, return an error message
+    # If handle_request fails, return an error message
     if not inp_url or not out_url:
         error_message = create_message(message="There was an error processing the image.", type='Text', to_user=from_user, from_user=to_user, channel=channel, ai_mode=ai_mode)
         pusher.trigger(channel, 'new_message', error_message)
@@ -399,7 +399,7 @@ def users():
         [{"id": user.id, "userName": user.username} for user in users]
     ), 200
 
-@app.route('/api/get_message/<channel_id>',endpoint='get_message')
+@app.route('/api/get-message/<channel_id>',endpoint='get_message')
 @jwt_required()
 def user_messages(channel_id):
     messages = Message.query.filter( Message.channel_id == channel_id ).all()
