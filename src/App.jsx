@@ -86,6 +86,16 @@ const App = () => {
         console.log(response);
         setLoggedUserId(response.data.data.id);
         setLoggedUserUsername(response.data.data.username);
+        const newPusher = new Pusher(import.meta.env.VITE_PUSHER_KEY, {
+          cluster: import.meta.env.VITE_PUSHER_CLUSTER,
+          authEndpoint: `${import.meta.env.VITE_API_BASE}/api/pusher/auth`,
+          auth: {
+            headers: {
+              Authorization: "Bearer " + savedToken,
+            },
+          },
+        });
+        setPusher(newPusher);
       }).catch(error => {
         console.error("Error fetching user data:", error);
       });
@@ -107,7 +117,8 @@ const App = () => {
         />
         <Route
           path="/register"
-          element={authenticated ? (
+          element={
+            authenticated ? (
             <Navigate to="/" />
           ) : (
               <Register />
