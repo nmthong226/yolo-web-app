@@ -28,7 +28,7 @@ const HomePage = ({ setAuthenticated, setToken, users, setUsers, loggedUserUsern
     };
     const getMessage = (channelName) => {
         axios
-            .get(`${import.meta.env.VITE_API_BASE}/api/get_message/${channelName}`, {
+            .get(`${import.meta.env.VITE_API_BASE}/api/get-message/${channelName}`, {
                 headers: { Authorization: "Bearer " + token },
             })
             .then((response) => {
@@ -50,7 +50,7 @@ const HomePage = ({ setAuthenticated, setToken, users, setUsers, loggedUserUsern
         setLoadingModel(true);
         axios
             .post(
-                `${import.meta.env.VITE_API_BASE}/api/request_chat`,
+                `${import.meta.env.VITE_API_BASE}/api/request-chat`,
                 {
                     from_user: loggedUserId,
                     to_user: id,
@@ -102,7 +102,7 @@ const HomePage = ({ setAuthenticated, setToken, users, setUsers, loggedUserUsern
 
     const sendMessage = (message) => {
         axios.post(
-            `${import.meta.env.VITE_API_BASE}/api/send_message`,
+            `${import.meta.env.VITE_API_BASE}/api/send-message`,
             {
                 type: "Text",
                 from_user: loggedUserId,
@@ -123,7 +123,7 @@ const HomePage = ({ setAuthenticated, setToken, users, setUsers, loggedUserUsern
         formData.append("file", file);
         formData.append("channel", currentChatChannel);
         formData.append("ai_mode", AImode);
-        axios.post(`${import.meta.env.VITE_API_BASE}/api/send_file`, formData, {
+        axios.post(`${import.meta.env.VITE_API_BASE}/api/send-file`, formData, {
             headers: {
                 "Content-Type": "multipart/form-data",
                 Authorization: "Bearer " + token,
