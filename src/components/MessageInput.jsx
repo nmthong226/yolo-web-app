@@ -33,7 +33,7 @@ const MessageInput = ({ onSendMessage, onSendFile }) => {
   return (
     <div className="flex w-full justify-center absolute bottom-0">
       <div className="flex flex-col w-full h-full justify-center items-center mb-[2%]">
-        <div className="flex flex-col w-[60%]">
+        <div className="flex flex-col w-[80%] lg:w-[60%]">
           <div className="flex flex-row w-full relative items-center mb-[2%] bg-white border rounded-[32px]">
             <div className="flex flex-col w-full">
               {uploadedFile && (
@@ -91,7 +91,7 @@ const MessageInput = ({ onSendMessage, onSendFile }) => {
               </div>
             </div>
           </div>
-          <span className="text-center text-sm text-gray-600 lg:text-nowrap">
+          <span className="text-center text-xsm xsm:text-sm text-gray-600 lg:text-nowrap">
             Canity may provide inaccurate information, so please verify Canity's answers.
           </span>
         </div>
