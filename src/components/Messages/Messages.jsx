@@ -75,10 +75,10 @@ const Messages = ({ messages, activeChat, loggedUserName }) => {
             />
           ) : message.type === "Text" ? (
             <div
-              className={`chat-message w-1/2 ${
+              className={`markdown-container ${
                 String(message.from_user) === normalizedActiveChat
-                  ? "bg-white p-2 mr-auto rounded-lg px-4 text-gray-700 mb-[1%]"
-                  : "bg-white p-2 ml-auto rounded-lg px-4 text-gray-700 mb-[1%]"
+                  ? "max-w-full w-fit bg-white p-2 mr-auto rounded-lg px-4 text-gray-700 mb-[1%]"
+                  : "max-w-[50%] w-fit bg-white p-2 ml-auto rounded-lg px-4 text-gray-700 mb-[1%]"
               }`}
             >
               <ReactMarkdown>{message.message}</ReactMarkdown>
