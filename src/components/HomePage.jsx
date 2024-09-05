@@ -270,25 +270,25 @@ const HomePage = ({ setAuthenticated, setToken, users, setUsers, loggedUserUsern
                     ) : !currentChatChannel ? (
                         <div className='flex flex-col items-center w-full h-full'>
                             <div className="flex flex-col items-center mt-[2%] w-full">
-                                <span className='text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#9372ff] via-[#484fa2] to-[#4f14ff]'>Welcome {loggedUserUsername}</span>
-                                <span className='text-xl md:text-2xl font-bold text-gray-400'>How can I help you?</span>
+                                <span className='text-xl xsm:text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#9372ff] via-[#484fa2] to-[#4f14ff]'>Welcome {loggedUserUsername}</span>
+                                <span className='text-lg xsm:text-xl md:text-2xl font-bold text-gray-400'>How can I help you?</span>
                             </div>
                             <div className='flex flex-col xsm:flex-wrap lg:flex-nowrap xsm:flex-row max-xsm:w-full max-lg:w-[60%] mt-[2%] lg:h-[40%] items-center justify-center gap-4'>
-                                <div className='flex flex-col bg-white rounded-2xl border-2 p-[2%] w-[45%] lg:w-[25%] h-[60%] space-y-[5%] hover:border-gray-400 hover:cursor-pointer'>
-                                    <img width="25" height="25" src="https://img.icons8.com/ios/50/settings--v1.png" alt="settings--v1"/>
-                                    <span className='text-sm text-gray-600'>Demo for YOLO application</span>
+                                <div className='flex flex-row xsm:flex-col bg-white rounded-2xl border-2 p-[2%] w-[80%] xsm:w-[45%] lg:w-[25%] h-[60%] max-xsm:space-x-2 space-y-0 xsm:space-y-[5%] hover:border-gray-400 hover:cursor-pointer max-xsm:items-center'>
+                                    <img src="https://img.icons8.com/ios/50/settings--v1.png" alt="settings--v1" className='w-[25px] h-[25px]'/>
+                                    <span className='text-xsm xsm:text-sm text-gray-600'>Demo for YOLO application</span>
                                 </div>
-                                <div className='flex flex-col bg-white rounded-2xl border-2 p-[2%] w-[45%] lg:w-[25%] h-[60%] space-y-[5%] hover:border-gray-400 hover:cursor-pointer'>
+                                <div className='flex flex-row xsm:flex-col bg-white rounded-2xl border-2 p-[2%] w-[80%] xsm:w-[45%] lg:w-[25%] h-[60%] max-xsm:space-x-2 space-y-0 xsm:space-y-[5%] hover:border-gray-400 hover:cursor-pointer max-xsm:items-center'>
                                     <img width="25" height="25" src="https://img.icons8.com/ios/50/dog--v1.png" alt="dog--v1" style={{filter: "invert(16%) sepia(81%) saturate(6089%) hue-rotate(257deg) brightness(92%) contrast(121%)"}}/>
-                                    <span className='text-sm text-gray-600'>Detect the dog through this image</span>
+                                    <span className='text-xsm xsm:text-sm text-gray-600'>Detect the dog through this image</span>
                                 </div>
-                                <div className='flex flex-col bg-white rounded-2xl border-2 p-[2%] w-[45%] lg:w-[25%] h-[60%] space-y-[5%] hover:border-gray-400 hover:cursor-pointer'>
+                                <div className='flex flex-row xsm:flex-col bg-white rounded-2xl border-2 p-[2%] w-[80%] xsm:w-[45%] lg:w-[25%] h-[60%] max-xsm:space-x-2 space-y-0 xsm:space-y-[5%] hover:border-gray-400 hover:cursor-pointer max-xsm:items-center'>
                                     <img width="25" height="25" src="https://img.icons8.com/ios/50/meal.png" alt="meal" style={{filter: "invert(54%) sepia(78%) saturate(952%) hue-rotate(348deg) brightness(92%) contrast(87%)"}}/>
-                                    <span className='text-sm text-gray-600'>Find this food name</span>
+                                    <span className='text-xsm xsm:text-sm text-gray-600'>Find this food name</span>
                                 </div>
-                                <div className='flex flex-col bg-white rounded-2xl border-2 p-[2%] w-[45%] lg:w-[25%] h-[60%] space-y-[5%] hover:border-gray-400 hover:cursor-pointer'>
+                                <div className='flex flex-row xsm:flex-col bg-white rounded-2xl border-2 p-[2%] w-[80%] xsm:w-[45%] lg:w-[25%] h-[60%] max-xsm:space-x-2 space-y-0 xsm:space-y-[5%] hover:border-gray-400 hover:cursor-pointer max-xsm:items-center'>
                                     <img width="25" height="25" src="https://img.icons8.com/ios/50/natural-food.png" alt="natural-food" style={{filter: "invert(78%) sepia(8%) saturate(3000%) hue-rotate(43deg) brightness(93%) contrast(80%)"}}/>
-                                    <span className='text-sm text-gray-600'>Tell me what is this plant's name?</span>
+                                    <span className='text-xsm xsm:text-sm text-gray-600'>Tell me what is this plant's name?</span>
                                 </div>
                             </div>
                         </div>
