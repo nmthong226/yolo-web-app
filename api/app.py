@@ -242,7 +242,7 @@ def upload_file(folder, img_name):
         result = json.loads(loader.read().decode())
         return result["downloadTokens"]
 
-def handle_request(bot_id, file, name, inp_dir, ai_activation):
+def handle_request(bot_id, name, inp_dir, ai_activation):
     # try:
     #     bot = User.query.filter(User.id == bot_id).one()
     # except NoResultFound:
@@ -253,19 +253,18 @@ def handle_request(bot_id, file, name, inp_dir, ai_activation):
     #     return None, None, ["Error! Multiple bots found."]
 
     # # Map bot_id to the appropriate model key
-    # bot_model_map = {
-    #     'basic': '1',
-    #     '2': 'dog_detect',
-    #     '3': 'food_detect',
-    #     '4': 'plant_detect'
-    # }
+    bot_model_map = {
+        '1': 'basic',
+        '2': 'dog',
+        '3': 'food',
+        '4': 'plant'
+    }
 
     # # Retrieve the model key based on bot_id
-    # model_key = bot_model_map.get(bot, None)
-    # print("1", model_key)
-    # if not model_key:
-    #     print(f'Error! Invalid bot_id: {bot_id}')
-    #     return None, None, [f"Error! Invalid bot_id: {bot_id}"]
+    model_key = bot_model_map.get(bot_id, None)
+    if not model_key:
+        print(f'Error! Invalid bot_id: {bot_id}')
+        return None, None, [f"Error! Invalid bot_id: {bot_id}"]
 
     try:
         model = yolo.get_model(bot_id)  # Use the model key to load the correct model
@@ -331,7 +330,8 @@ def handle_request(bot_id, file, name, inp_dir, ai_activation):
     out_token = upload_file('output', out_dir+'.jpg')
     inp_url = f'https://firebasestorage.googleapis.com/v0/b/yolo-web-app.appspot.com/o/input%2F{name}.jpg?alt=media&token={inp_token}'
     out_url = f'https://firebasestorage.googleapis.com/v0/b/yolo-web-app.appspot.com/o/output%2F{name}.jpg?alt=media&token={out_token}'
-    
+    # Upload the output images into the specific type to Firebase Storage
+
     # If user activates ai mode, they will get the description about the detected objects
     if ai_activation == '1':
         # Generate more info about the detected objects in the image
@@ -339,7 +339,7 @@ def handle_request(bot_id, file, name, inp_dir, ai_activation):
         if detections:
             # Create a prompt based on the detected objects
             detected_classes = ', '.join([det['class'] for det in detections])
-            prompt = f"What is {detected_classes} dog?."
+            prompt = f"What is {detected_classes} {model_key}?."
             response = model.generate_content(prompt)
             messages.append(response.text)
         else:
@@ -371,7 +371,7 @@ def send_file():
     pusher.trigger(channel, 'new_message', message)
 
     # Process the image and perform object detection
-    inp_url, out_url, messages = handle_request(bot_id, file, name, inp_dir, ai_mode)
+    inp_url, out_url, messages = handle_request(bot_id, name, inp_dir, ai_mode)
 
     # If handle_request fails, return an error message
     if not inp_url or not out_url:
