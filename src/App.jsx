@@ -5,6 +5,7 @@ import Login from "../src/components/Login";
 import axios from "axios";
 import Register from "../src/components/Register";
 import HomePage from "../src/components/HomePage";
+import { jwtDecode } from "jwt-decode";
 
 const App = () => {
   const [loadingModel, setLoadingModel] = useState(false);
@@ -78,6 +79,14 @@ const App = () => {
   useEffect(() => {
     const savedToken = localStorage.getItem("token");
     if (savedToken) {
+      const decodedToken = jwtDecode(savedToken);
+      if (decodedToken.exp * 1000 < Date.now()) {
+        console.log("Token expired, clearing localStorage and logging out");
+        localStorage.removeItem("token");
+        setAuthenticated(false);
+        setToken(null);
+        return;
+      }
       setToken(savedToken);
       setAuthenticated(true);
       axios.get(`${import.meta.env.VITE_API_BASE}/api/users/me`, {
@@ -98,6 +107,11 @@ const App = () => {
         setPusher(newPusher);
       }).catch(error => {
         console.error("Error fetching user data:", error);
+        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+          localStorage.removeItem("token");
+          setAuthenticated(false);
+          setToken(null);
+        }
       });
     }
   }, []);
@@ -119,8 +133,8 @@ const App = () => {
           path="/register"
           element={
             authenticated ? (
-            <Navigate to="/" />
-          ) : (
+              <Navigate to="/" />
+            ) : (
               <Register />
             )
           }
