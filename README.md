@@ -60,39 +60,39 @@ FLASK_ENV=development
 ```
 ## Installation
 ### Backend (Flask API)
-- 1. Navigate to the backend folder:
+- Navigate to the backend folder:
 ```bash
 cd backend
 ```
-- 2. Create a virtual environment:
+- Create a virtual environment:
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
 ```
-- 3. Install the dependencies:
+- Install the dependencies:
 ```bash
 pip install -r requirements.txt
 ```
-- 4. Set up SQLite database:
+- Set up SQLite database:
 ```bash
 flask db init
 flask db migrate
 flask db upgrade
 ```
-- 5. Run the Flask server:
+- Run the Flask server:
 ```bash
 flask run
 ```
 ### Frontend (ReactJS)
-- 1. Navigate to the frontend folder:
+- Navigate to the frontend folder:
 ```bash
 cd frontend
 ```
-- 2. Install the dependencies:
+- Install the dependencies:
 ```bash
 npm install
 ```
-- 3. Start the React development server:
+- Start the React development server:
 ```bash
 npm run dev
 ```
@@ -102,7 +102,7 @@ npm run dev
 - The image is stored in Firebase.
 - YOLOv10 models, running in the Flask backend, will process the image and detect objects.
 - The detected objects are returned to the user in the chat interface along with additional information.
-- 
+
 ### Real-time Communication
 ` The application uses PusherJS for real-time message delivery between the user and the bot.
 
