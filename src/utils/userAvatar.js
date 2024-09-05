@@ -1,6 +1,6 @@
 /* Change user name into avatar */
 export const getColor = () => {
-    var color = "#2D2F31";
+    var color = "#5A60AB";
     return color;
 };
 
