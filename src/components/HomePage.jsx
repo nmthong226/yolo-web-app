@@ -1,4 +1,4 @@
-import React, { useState, Fragment } from 'react';
+import React, { useState, Fragment, useEffect } from 'react';
 import NavBar from './NavBar';
 import Bots from './Bots.jsx';
 import Messages from './Messages/Messages';
@@ -16,10 +16,16 @@ import { Navigate, useNavigate } from 'react-router-dom';
 
 const HomePage = ({ setAuthenticated, setToken, users, setUsers, loggedUserUsername, loggedUserId, token, pusher, messages, setMessages }) => {
     const [loadingModel, setLoadingModel] = useState(false);
+    const [loadingAvatar, setLoadingAvatar] = useState(false);
     const [activeChatId, setActiveChatId] = useState(null);
     const [currentChatChannel, setCurrentChatChannel] = useState(null);
     const [AImode, setAIMode] = useState(0);
     const navigate = useNavigate();
+    useEffect(() => {
+        setTimeout(() => {
+            setLoadingAvatar(true)
+        }, 1000);
+    })
     const handleLogout = () => {
         setAuthenticated(false);
         setToken(null);
@@ -171,17 +177,24 @@ const HomePage = ({ setAuthenticated, setToken, users, setUsers, loggedUserUsern
                 </div>
                 <div className='flex flex-row h-[8%] border-2 border-gray-300 items-center justify-between'>
                     <div className='flex items-center ml-[4%]'>
-                        <button className='relative flex rounded-full bg-gray-800 text-sm focus:ring-2 focus:outline-none focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800'>
-                            <img
-                                id='preview'
-                                src={createImageFromInitials(120, loggedUserUsername, getColor())}
-                                alt='profile-pic'
-                                className='h-10 w-10 rounded-full'
-                            />
-                        </button>
+                        {!loadingAvatar ? (
+                            <button className='relative flex rounded-full bg-[#CBCDE5] text-sm focus:ring-2 focus:outline-none focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800'>
+                                <div class="border-gray-300 h-10 w-10 animate-spin rounded-full border-2 border-t-blue-600" />
+                            </button>
+                        ) : (
+                            <button className='relative flex rounded-full text-sm focus:ring-2 focus:outline-none focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800'>
+                                <img
+                                    id='preview'
+                                    src={createImageFromInitials(120, loggedUserUsername, getColor())}
+                                    alt='profile-pic'
+                                    className='h-10 w-10 rounded-full'
+                                />
+                            </button>
+                        )}
+
                         <span className='ml-2'>{loggedUserUsername}</span>
                     </div>
-                    <button 
+                    <button
                         className='mr-[4%]'
                         onClick={() => handleLogout()}
                     >
@@ -255,9 +268,29 @@ const HomePage = ({ setAuthenticated, setToken, users, setUsers, loggedUserUsern
                             <span className="text-base font-medium text-gray-500">Loading...</span>
                         </div>
                     ) : !currentChatChannel ? (
-                        <div className="flex flex-col items-center mt-[2%] w-full h-full">
-                            <span className='text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#9372ff] via-[#484fa2] to-[#4f14ff]'>Welcome {loggedUserUsername}</span>
-                            <span className='text-2xl font-bold text-gray-400'>How can I help you?</span>
+                        <div className='flex flex-col items-center w-full h-full'>
+                            <div className="flex flex-col items-center mt-[2%] w-full">
+                                <span className='text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#9372ff] via-[#484fa2] to-[#4f14ff]'>Welcome {loggedUserUsername}</span>
+                                <span className='text-xl md:text-2xl font-bold text-gray-400'>How can I help you?</span>
+                            </div>
+                            <div className='flex flex-col xsm:flex-wrap lg:flex-nowrap xsm:flex-row max-xsm:w-full max-lg:w-[60%] mt-[2%] lg:h-[40%] items-center justify-center gap-4'>
+                                <div className='flex flex-col bg-white rounded-2xl border-2 p-[2%] w-[45%] lg:w-[25%] h-[60%] space-y-[5%] hover:border-gray-400 hover:cursor-pointer'>
+                                    <img width="25" height="25" src="https://img.icons8.com/ios/50/settings--v1.png" alt="settings--v1"/>
+                                    <span className='text-sm text-gray-600'>Demo for YOLO application</span>
+                                </div>
+                                <div className='flex flex-col bg-white rounded-2xl border-2 p-[2%] w-[45%] lg:w-[25%] h-[60%] space-y-[5%] hover:border-gray-400 hover:cursor-pointer'>
+                                    <img width="25" height="25" src="https://img.icons8.com/ios/50/dog--v1.png" alt="dog--v1" style={{filter: "invert(16%) sepia(81%) saturate(6089%) hue-rotate(257deg) brightness(92%) contrast(121%)"}}/>
+                                    <span className='text-sm text-gray-600'>Detect the dog through this image</span>
+                                </div>
+                                <div className='flex flex-col bg-white rounded-2xl border-2 p-[2%] w-[45%] lg:w-[25%] h-[60%] space-y-[5%] hover:border-gray-400 hover:cursor-pointer'>
+                                    <img width="25" height="25" src="https://img.icons8.com/ios/50/meal.png" alt="meal" style={{filter: "invert(54%) sepia(78%) saturate(952%) hue-rotate(348deg) brightness(92%) contrast(87%)"}}/>
+                                    <span className='text-sm text-gray-600'>Find this food name</span>
+                                </div>
+                                <div className='flex flex-col bg-white rounded-2xl border-2 p-[2%] w-[45%] lg:w-[25%] h-[60%] space-y-[5%] hover:border-gray-400 hover:cursor-pointer'>
+                                    <img width="25" height="25" src="https://img.icons8.com/ios/50/natural-food.png" alt="natural-food" style={{filter: "invert(78%) sepia(8%) saturate(3000%) hue-rotate(43deg) brightness(93%) contrast(80%)"}}/>
+                                    <span className='text-sm text-gray-600'>Tell me what is this plant's name?</span>
+                                </div>
+                            </div>
                         </div>
                     ) : (
                         <Messages
