@@ -45,6 +45,7 @@ const MessageInput = ({ onSendMessage, onSendFile }) => {
                       className="w-14 h-14 rounded-md object-cover border-2 relative"
                       hideDownload={true}
                       hideZoom={true}
+                      alt={uploadedFile.name}
                     />
                     <button
                       className="absolute"
@@ -82,7 +83,7 @@ const MessageInput = ({ onSendMessage, onSendFile }) => {
                     <FaRegFileImage className="size-5 text-gray-700" />
                   </button>
                   <button
-                    className={`p-3 ${messageInput !== "" || uploadedFile !== null ? "hover:bg-zinc-800 bg-zinc-900 cursor-pointer" : "cursor-default"} rounded-full`}
+                    className={`p-3 ${messageInput !== "" || uploadedFile !== null ? "hover:bg-zinc-800 bg-zinc-900 cursor-pointer" : "hover:bg-gray-200 cursor-default"} rounded-full`}
                     onClick={sendMessage}
                   >
                     <LuSendHorizonal className={`size-5 ${messageInput !== "" || uploadedFile !== null ? "text-white" : "text-gray-700"}`} />

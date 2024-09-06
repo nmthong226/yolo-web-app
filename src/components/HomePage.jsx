@@ -179,7 +179,7 @@ const HomePage = ({ setAuthenticated, setToken, users, setUsers, loggedUserUsern
                     <div className='flex items-center ml-[4%]'>
                         {!loadingAvatar ? (
                             <button className='relative flex rounded-full bg-[#CBCDE5] text-sm focus:ring-2 focus:outline-none focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800'>
-                                <div class="border-gray-300 h-10 w-10 animate-spin rounded-full border-2 border-t-blue-600" />
+                                <div className="border-gray-300 h-10 w-10 animate-spin rounded-full border-2 border-t-blue-600" />
                             </button>
                         ) : (
                             <button className='relative flex rounded-full text-sm focus:ring-2 focus:outline-none focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800'>

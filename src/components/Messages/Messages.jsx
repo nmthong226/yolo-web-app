@@ -31,7 +31,7 @@ const Messages = ({ messages, activeChat, loggedUserName }) => {
   };
 
   return (
-    <div ref={containerRef} className="px-[20%] mt-[2%] overflow-auto h-full">
+    <div ref={containerRef} className="px-[20%] mt-[2%] overflow-auto h-full pb-[5%]">
       {messages.map((message, id) => (
         <div key={id} className="mb-2">
           {shouldDisplayLogo(messages, id) && (
