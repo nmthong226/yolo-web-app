@@ -20,6 +20,9 @@ from flask_cors import CORS, cross_origin
 import cv2
 from datetime import timedelta
 import google.generativeai as genai
+import firebase_admin
+from firebase_admin import credentials, storage
+import re
 
 load_dotenv()
 
@@ -29,6 +32,8 @@ app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
+cred = credentials.Certificate('./yolo-web-app-firebase-adminsdk-jtzsz-58d0d22304.json')
+firebase_admin.initialize_app(cred, {'storageBucket': 'yolo-web-app.appspot.com'})
 
 pusher = pusher.Pusher(
     app_id=os.getenv('PUSHER_APP_ID'),
@@ -205,25 +210,109 @@ def create_message(message, type, to_user, from_user, channel, ai_mode):
     }
     return message
 
-@app.route("/api/send-message", methods=["POST"],endpoint='send_message')
+def get_images_from_firebase(folder, object_type, object_name):
+    bucket = storage.bucket()
+    blobs = bucket.list_blobs(prefix=folder)
+    # Extract image URLs matching the exact object_name (e.g., "bordercollie")
+    image_urls = []
+    for blob in blobs:
+        # Extract the part of the filename before the underscore
+        filename_without_date = blob.name.split('/')[-1].split('_')[0]  # Get the last part of the path
+        # Check if the extracted filename matches the object_name
+        if filename_without_date.lower() == object_name.lower():
+            if len(image_urls) >= 4:
+                break
+            # Generate a 1-hour signed URL
+            img_url = f"https://firebasestorage.googleapis.com/v0/b/yolo-web-app.appspot.com/o/related_images" + "%2F" + object_type + "%2F" + blob.name.split('/')[-1] + "?alt=media"
+            image_urls.append(img_url)
+    print("Final image URLs:", image_urls)  # Print the list of image URLs
+    return image_urls
+
+
+
+@app.route("/api/send-message", methods=["POST"], endpoint='send_message')
 @jwt_required()
 def send_message():
     request_data = request.get_json()
-    print(request_data)
     from_user = request_data.get('from_user', '')
     to_user = request_data.get('to_user', '')
     message = request_data.get('message', '')
     channel = request_data.get('channel')
     ai_mode = request_data.get('ai_mode')
-    message = create_message(message=message, 
-                            type='Text', 
-                            to_user=to_user, 
-                            from_user=from_user, 
-                            channel=channel,
-                            ai_mode=ai_mode)
-    # Trigger an event to the other user
-    pusher.trigger(channel, 'new_message', message)
-    return jsonify(message)
+
+    # Check if the message requests images
+    match = re.search(r'Send me some images about (.+)', message, re.IGNORECASE)
+    if match:
+        # Send the user's command to the bot
+        message_content = create_message(message=message, 
+                                     type='Text', 
+                                     to_user=to_user, 
+                                     from_user=from_user, 
+                                     channel=channel,
+                                     ai_mode=ai_mode)
+        pusher.trigger(channel, 'new_message', message_content)
+
+        object_name = match.group(1)
+        object_type = {
+            1: 'basic',
+            2: 'dog',
+            3: 'food',
+            4: 'plant'
+        }.get(int(to_user), None)
+
+        if not object_type:
+            message_content = create_message(message=f"Sorry!, I can't handle your command", 
+                                             type='Text', 
+                                             to_user=from_user, 
+                                             from_user=to_user, 
+                                             channel=channel,
+                                             ai_mode=ai_mode)
+            pusher.trigger(channel, 'new_message', message_content)
+            return jsonify(message_content)
+
+        image_urls = get_images_from_firebase(f"related_images/{object_type}/", object_type, object_name)
+
+        if not image_urls:
+            message_content = create_message(message=f"Oops! I couldn't find any images about {object_name}", 
+                                             type='Text', 
+                                             to_user=from_user, 
+                                             from_user=to_user, 
+                                             channel=channel,
+                                             ai_mode=ai_mode)
+            pusher.trigger(channel, 'new_message', message_content)
+            return jsonify(message_content)
+
+        # Here are some images about the object
+        message_content = create_message(message=f"Here are some images about {object_name}", 
+                                            type='Text', 
+                                            to_user=from_user, 
+                                            from_user=to_user, 
+                                            channel=channel,
+                                            ai_mode=ai_mode)
+        pusher.trigger(channel, 'new_message', message_content)
+
+        # Send the image URLs to the user
+        messages_content = [create_message(message=img_url, 
+                                           type='Image', 
+                                           to_user=from_user, 
+                                           from_user=to_user, 
+                                           channel=channel,
+                                           ai_mode=ai_mode) for img_url in image_urls]
+
+        for message_content in messages_content:
+            pusher.trigger(channel, 'new_message', message_content)
+
+        return jsonify(messages_content)
+
+    # Regular normal message creation
+    message_content = create_message(message=message, 
+                                     type='Text', 
+                                     to_user=to_user, 
+                                     from_user=from_user, 
+                                     channel=channel,
+                                     ai_mode=ai_mode)
+    pusher.trigger(channel, 'new_message', message_content)
+    return jsonify(message_content)
 
 def upload_file(folder, img_name):
     my_file = open(img_name, "rb")
@@ -272,7 +361,6 @@ def handle_request(bot_id, name, inp_dir, ai_activation):
         print(f'Error! Cannot load model: {str(e)}')
         return None, None, [f"Error! Cannot load model: {str(e)}"]
 
-
     # Save the uploaded file locally
     out_dir = './data/output/{}'.format(name)
 
@@ -313,11 +401,21 @@ def handle_request(bot_id, name, inp_dir, ai_activation):
                 'prob': confidence
             })
 
+    # Get current timestamp for naming
+    timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     # Prepare messages based on detection results
     messages = []
     messages.append(f'I have detected {len(detections)} object(s) in the image.')
+    # Variable to track the detection with the highest probability
+    highest_prob = 0
+    highest_class = "unknown"
     for idx, det in enumerate(detections):
         prob = det['prob']
+        class_name = det['class']
+        # Update highest probability detection
+        if prob > highest_prob:
+            highest_prob = prob
+            highest_class = class_name
         if prob > 0.8:
             messages.append(f'[{idx + 1}] I detected a [{det["class"]}].')
         elif prob > 0.5:
@@ -325,6 +423,16 @@ def handle_request(bot_id, name, inp_dir, ai_activation):
         elif prob > 0.3:
             messages.append(f'[{idx + 1}] I really do not know what this is. My best guess is that it is a [{det["class"]}].')
     
+    # Convert to lowercase and remove spaces and special characters using a regex
+    highest_class = re.sub(r'[^a-zA-Z0-9]', '', highest_class.lower())
+    # Use highest detected object's class name in the output file name
+    if highest_class != "unknown":
+        object_file_name = f"{highest_class}_{timestamp}.jpg"
+        object_out_dir = f'./data/output/{object_file_name}'
+        cv2.imwrite(object_out_dir, result_image)  # Save the result image
+        upload_folder = f"related_images" + "%2F" + model_key
+        object_token = upload_file(upload_folder, object_out_dir)
+
     # Upload the input and output images to Firebase Storage
     inp_token = upload_file('input', inp_dir)
     out_token = upload_file('output', out_dir+'.jpg')
