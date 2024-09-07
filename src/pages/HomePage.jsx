@@ -1,8 +1,8 @@
 import React, { useState, Fragment, useEffect } from 'react';
-import NavBar from './NavBar';
-import Bots from './Bots.jsx';
-import Messages from './Messages/Messages';
-import MessageInput from './MessageInput';
+import NavBar from '../components/NavBar.jsx';
+import Bots from '../components/Bots.jsx';
+import Messages from '../components/Messages/Messages.jsx';
+import MessageInput from '../components/MessageInput.jsx';
 import logo from '/public/logo.png';
 import { FaPlus } from "react-icons/fa6";
 import { CiSearch } from "react-icons/ci";
@@ -30,7 +30,7 @@ const HomePage = ({ setAuthenticated, setToken, users, setUsers, loggedUserUsern
         setAuthenticated(false);
         setToken(null);
         localStorage.removeItem("token");
-        navigate("/login");
+        navigate("/auth/login");
     };
     const getMessage = (channelName) => {
         axios

@@ -32,7 +32,7 @@ const Login = ({ onAuthenticated }) => {
     };
 
     return (
-        <div className="flex flex-col h-screen w-full justify-center items-center">
+        <div className="flex justify-center items-center">
             <div className="flex flex-col w-96 bg-white mx-auto p-5">
                 <img src={logo} alt="logo" className="w-[60px] mx-auto mb-2" />
                 <span className="text-2xl sm:text-4xl font-bold mb-4">Welcome to Canity</span>
@@ -77,7 +77,7 @@ const Login = ({ onAuthenticated }) => {
                 <span className="mx-auto text-sm text-center">By continuing you agree to Canity's Terms of Service and Privacy Policy</span>
                 <hr className="h-px my-2 bg-gray-200 border-0 dark:bg-gray-700" />
                 <span className="font-bold text-sm mx-auto hover:text-[#484FA2] hover:cursor-pointer">
-                    <Link to="/register">Not on Canity yet? Sign up</Link>
+                    <Link to="/auth/register">Not on Canity yet? Sign up</Link>
                 </span>
             </div>
         </div>

@@ -23,7 +23,7 @@ const Register = () => {
       console.log(response.data.status);
       if (response.data.status === "success") {
         setProcessing(false);
-        navigate("/login");
+        navigate("/auth/login");
       } else {
         setMessage("Registration failed. Please try again.");
         setProcessing(false);
@@ -34,7 +34,7 @@ const Register = () => {
     }
   };
   return (
-    <div className="flex flex-col h-screen w-full justify-center items-center">
+    <div className="flex justify-center items-center">
       <div className="flex flex-col w-96 bg-white mx-auto p-5">
         <img src={logo} alt="logo" className="w-[60px] mx-auto mb-2" />
         <span className="text-2xl sm:text-4xl font-bold mx-auto mb-4">Register to Canity</span>
@@ -78,7 +78,7 @@ const Register = () => {
         <span className="mx-auto text-sm text-center">By continuing you agree to Canity's Terms of Service and Privacy Policy</span>
         <hr className="h-px my-2 bg-gray-200 border-0 dark:bg-gray-700" />
         <span className="font-bold text-sm mx-auto hover:text-[#484FA2] hover:cursor-pointer">
-          <Link to="/login">Already have an account? Sign in</Link>
+          <Link to="/auth/login">Already have an account? Sign in</Link>
         </span>
       </div>
     </div>

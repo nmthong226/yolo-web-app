@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Pusher from "pusher-js";
-import Login from "../src/components/Login";
+import Login from "./pages/Login";
 import axios from "axios";
-import Register from "../src/components/Register";
-import HomePage from "../src/components/HomePage";
+import Register from "./pages/Register";
+import HomePage from "./pages/HomePage";
 import { jwtDecode } from "jwt-decode";
+import Document from "./pages/Document/Document";
+import Demo from "./pages/Demo";
+import Layout from "./components/Layout";
 
 const App = () => {
   const [loadingModel, setLoadingModel] = useState(false);
@@ -119,28 +122,32 @@ const App = () => {
   return (
     <Router>
       <Routes>
+        <Route element={<Layout />}>
+          <Route path="/docs" element={<Document />} />
+          <Route path="/demo" element={<Demo />} />
+          <Route
+            path="/auth/login"
+            element={
+              authenticated ? (
+                <Navigate to="/dashboard" />
+              ) : (
+                <Login onAuthenticated={handleAuthenticated} />
+              )
+            }
+          />
+          <Route
+            path="/auth/register"
+            element={
+              authenticated ? (
+                <Navigate to="/dashboard" />
+              ) : (
+                <Register />
+              )
+            }
+          />
+        </Route>
         <Route
-          path="/login"
-          element={
-            authenticated ? (
-              <Navigate to="/" />
-            ) : (
-              <Login onAuthenticated={handleAuthenticated} />
-            )
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            authenticated ? (
-              <Navigate to="/" />
-            ) : (
-              <Register />
-            )
-          }
-        />
-        <Route
-          path="/"
+          path="/dashboard"
           element={
             authenticated ? (
               <HomePage
@@ -158,7 +165,7 @@ const App = () => {
                 token={token}
               />
             ) : (
-              <Navigate to="/login" />
+              <Navigate to="/auth/login" />
             )
           }
         />
