@@ -10,6 +10,7 @@ from flask_jwt_extended import (
     get_jwt_identity
 )
 from yolo import models as yolo
+from yolo import model_demo as yolo_demo
 import json
 import datetime
 import urllib
@@ -511,7 +512,6 @@ def users():
 @jwt_required()
 def user_messages(channel_id):
     messages = Message.query.filter( Message.channel_id == channel_id ).all()
-
     return jsonify([
         {
             "id": message.id,
@@ -523,6 +523,90 @@ def user_messages(channel_id):
         } 
         for message in messages
     ])
+
+def handle_demo(inp_dir, name, file_type):
+    try:
+        model = yolo_demo.get_model()  # Get the demo model
+    except Exception as e:
+        print(f'Error! Cannot load model: {str(e)}')
+        return None, None, [f"Error! Cannot load model: {str(e)}"]
+
+    if file_type.startswith('image/'):
+        # Handle image processing
+        img = cv2.imread(inp_dir)
+        if img is None:
+            print('Error! Could not read the image file. It may be corrupted.')
+            return None, None, ["Error! Could not read the image file."]
+        try:
+            results = model(img)
+            result_image = results[0].plot()
+            out_path = './data/demo_output/{}.jpg'.format(name)
+            cv2.imwrite(out_path, result_image)
+        except Exception as e:
+            print('Error during inference:', str(e))
+            return None, None, ["Error during inference."]
+        
+        # Upload input and output images to Firebase
+        inp_token = upload_file('demo_input', inp_dir)
+        out_token = upload_file('demo_output', out_path)
+        inp_url = f'https://firebasestorage.googleapis.com/v0/b/yolo-web-app.appspot.com/o/demo_input%2F{name}.jpg?alt=media&token={inp_token}'
+        out_url = f'https://firebasestorage.googleapis.com/v0/b/yolo-web-app.appspot.com/o/demo_output%2F{name}.jpg?alt=media&token={out_token}'
+
+    elif file_type.startswith('video/'):
+        # Handle video processing
+        video_capture = cv2.VideoCapture(inp_dir)
+        fps = video_capture.get(cv2.CAP_PROP_FPS)
+        width = int(video_capture.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+        # Initialize the VideoWriter to save the processed video
+        out_path = './data/demo_output/{}.mp4'.format(name)
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for .mp4 files
+        video_writer = cv2.VideoWriter(out_path, fourcc, fps, (width, height))
+
+        # Process each frame and write to the video writer
+        success, frame = video_capture.read()
+        while success:
+            try:
+                results = model(frame)
+                result_frame = results[0].plot()  # Process the frame through YOLO
+                video_writer.write(result_frame)  # Write the processed frame to the output video
+            except Exception as e:
+                print('Error during inference on frame:', str(e))
+                break
+            success, frame = video_capture.read()
+
+        # Release video capture and writer
+        video_capture.release()
+        video_writer.release()
+
+        # Upload input and output videos to Firebase
+        inp_token = upload_file('demo_input', inp_dir)
+        out_token = upload_file('demo_output', out_path)
+        inp_url = f'https://firebasestorage.googleapis.com/v0/b/yolo-web-app.appspot.com/o/demo_input%2F{name}.mp4?alt=media&token={inp_token}'
+        out_url = f'https://firebasestorage.googleapis.com/v0/b/yolo-web-app.appspot.com/o/demo_output%2F{name}.mp4?alt=media&token={out_token}'
+
+    return inp_url, out_url
+
+
+@app.route('/api/demo', methods=['POST'], endpoint='send_file_demo')
+def send_file_demo():
+    if 'file' not in request.files:
+        return "No file part", 400
+    file = request.files['file']
+    if file.filename == '':
+        return "No selected file", 400
+    # Create a unique file name based on the current timestamp
+    name = "demo_" + datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    inp_dir = './data/demo_input/{}.{}'.format(name, file.filename.split('.')[-1])
+    file_type = file.mimetype  # Get the file type (image or video)
+    # Ensure the directory exists
+    os.makedirs(os.path.dirname(inp_dir), exist_ok=True)
+    # Save the uploaded file
+    file.save(inp_dir)
+    # Handle detect object(s) request
+    inp_url, out_url = handle_demo(inp_dir, name, file_type)
+    return jsonify(inp_url, out_url)
 
 # run Flask app
 if __name__ == "__main__":

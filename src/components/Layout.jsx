@@ -3,7 +3,7 @@ import Header from "./Header.jsx";
 
 const Layout = () => {
   return (
-    <div className="w-full h-screen">
+    <div>
       <Header />
       <main>
         <Outlet />
