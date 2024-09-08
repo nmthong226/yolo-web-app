@@ -25,8 +25,7 @@ from firebase_admin import credentials, storage
 import re
 
 load_dotenv()
-
-genai.configure(api_key=os.environ["API_KEY"])
+genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
 app = Flask(__name__)
 cors = CORS(app)
